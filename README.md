@@ -12,7 +12,15 @@ A small structured envelope can improve interoperability and reduce context whil
 
 ## Mechanism
 
-Emit status, exit state, changed entities, warnings/errors, test counts, repository revisions, duration, verification, uncertainty, provenance, artifacts, and an explicit raw-output escalation reason only when applicable.
+Emit status, exit state, changed entities, warnings/errors, test counts,
+repository revisions, duration, verification, uncertainty, provenance,
+artifacts, and an explicit raw-output escalation reason only when applicable.
+
+The reference implementation also independently validates Context Firewall
+`opsle.context-firewall.evidence-packet/v1` packets. It does not import or call
+Context Firewall. With source bytes, it recomputes hashes, reclassifies the
+documented TAP subset, verifies retained line locators, and derives suppression
+accounting independently.
 
 ## Why it matters
 
@@ -22,17 +30,109 @@ The Opsle thesis asks: **What if we stopped using intelligence for work that doe
 
 A universal event schema, embedding raw logs by default, or expanding fields without demonstrated decision value.
 
+## Public API
+
+```js
+import {
+  validateContextFirewallPacket,
+} from '@opsle/decision-evidence-protocol';
+
+const result = validateContextFirewallPacket(
+  packet,
+  {
+    packetBytes,
+    sourceInput,
+  },
+);
+```
+
+`sourceInput` is optional and uses Context Firewall's public input shape. A
+caller that has only stream bytes can instead supply `sourceStreams` as
+`{ name, bytes }` entries. Supplying neither validates the receipt internally
+and returns `VALID_WITH_UNVERIFIED_SOURCE`; it never reports the input hash as
+independently verified.
+
+The structured result includes:
+
+- `classification`: `VALID`, `VALID_WITH_UNVERIFIED_SOURCE`,
+  `STRUCTURALLY_INVALID`, `INTERNALLY_INCONSISTENT`, or
+  `CRYPTOGRAPHIC_MISMATCH`;
+- `sufficiency`: `SUFFICIENT`, `NEEDS_RAW_EVIDENCE`, or `INVALID`;
+- `verification`: per-claim states for configuration, source, semantic payload,
+  retained line hashes, canonical packet bytes, measurements, and accounting;
+- `raw_evidence`: suppression, preservation, destruction, and caller-locator
+  claim state, with locator verification explicitly `CALLER_CLAIM_ONLY`; and
+- `violations`: stable path-specific failure objects.
+
+`NEEDS_RAW_EVIDENCE` is valid protocol output but
+`evidence_sufficient` is always false.
+
+## CLI
+
+Validate canonical packet bytes from stdin:
+
+```bash
+node ./bin/decision-evidence.js \
+  validate-context-firewall
+```
+
+Validate a packet and its source input:
+
+```bash
+node ./bin/decision-evidence.js \
+  validate-context-firewall \
+  --packet packet.json \
+  --source-input source.json
+```
+
+Output is canonical machine-readable JSON. Exit code 0 means a valid receipt,
+including valid-but-insufficient escalation receipts; callers must inspect
+`sufficiency`. Exit code 1 means validation failure. Invocation or JSON errors
+use exit code 2.
+
+## Verification
+
+```bash
+npm run lint
+npm test
+npm run conformance
+```
+
+The self-contained conformance corpus contains 24 public-safe vectors: 9 valid
+producer packets and 15 intentional structural, consistency, boundary, and
+cryptographic failures. See
+[the packet-v1 profile](docs/context-firewall-packet-v1.md).
+
+The separately run cross-repository compatibility proof is:
+
+```bash
+node \
+  tools/verify-context-firewall-interop.js \
+  ../context-firewall
+```
+
+It requires the exact documented read-only Context Firewall revision and does
+not create a runtime or CI dependency on that repository.
+
 ## Current maturity
 
-**PROTOTYPE** under the [Opsle maturity model](https://github.com/opsle/research/blob/main/MATURITY.md).
+The authoritative lifecycle stage is recorded by
+[Opsle Research](https://github.com/opsle/research). The packet-v1 validator,
+automated failure tests, conformance vectors, and exact-revision interoperability
+proof establish a narrow verification claim. They do not establish comparative
+benefit, benchmark readiness, or model correctness.
 
 ## Existing evidence
 
-Structured provider results and operational metrics show feasibility inside one system. Cross-tool adequacy is unverified.
+The generic envelope validator remains available. Context Firewall packet-v1
+interoperability is now executable and deterministic at the revisions recorded
+in the authoritative Opsle registry.
 
 ## Evidence still missing
 
-Adapter trials across test, Git, build, lint, typecheck, shell, and deployment tools; versioning and conformance rules.
+Other tool classes, independent implementations beyond Context Firewall,
+measured decision adequacy, comparative benchmarks, and replication remain
+missing.
 
 ## Benchmark strategy
 
@@ -61,7 +161,18 @@ A small dependency-free reference prototype is included for falsification and in
 
 ## Known limitations
 
-Adapter trials across test, Git, build, lint, typecheck, shell, and deployment tools; versioning and conformance rules.
+- A syntactically valid source hash is not independently verified without
+  supplied source bytes.
+- `raw_evidence.reference` is caller-owned. Validation proves only whether a
+  nonempty reference was declared, not whether its target exists, is immutable,
+  is available, or contains the claimed bytes.
+- Packet v1 hashes canonical `decision_evidence`; it has no self-referential
+  whole-packet hash. The validator instead checks exact canonical packet bytes
+  when supplied and always checks the fixed-point `reduced_bytes` measurement.
+- The strict TAP-subset classifier is not arbitrary TAP or general log support.
+- A valid receipt does not prove that a model will make a correct decision from
+  reduced evidence. That remains the planned EXP-001 question, and no model or
+  provider experiment is run here.
 
 ## License
 

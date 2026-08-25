@@ -1,9 +1,21 @@
 {
   "name": "@opsle/decision-evidence-protocol",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
+  "bin": {
+    "decision-evidence": "./bin/decision-evidence.js"
+  },
+  "exports": {
+    ".": "./src/index.js",
+    "./context-firewall-v1": "./src/context-firewall-v1.js"
+  },
   "scripts": {
-    "test": "node --test"
+    "test": "node --test",
+    "conformance": "node ./bin/decision-evidence.js conformance",
+    "lint": "node --check src/*.js && node --check bin/*.js && node --check tools/*.js"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }
