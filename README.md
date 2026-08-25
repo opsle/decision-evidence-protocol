@@ -34,7 +34,10 @@ A universal event schema, embedding raw logs by default, or expanding fields wit
 
 ```js
 import {
+  createValidationValueReceipt,
   validateContextFirewallPacket,
+  validateContextFirewallValueReceipt,
+  validateValueReceipt,
 } from '@opsle/decision-evidence-protocol';
 
 const result = validateContextFirewallPacket(
@@ -43,6 +46,17 @@ const result = validateContextFirewallPacket(
     packetBytes,
     sourceInput,
   },
+);
+
+const producerReceiptResult = validateContextFirewallValueReceipt(
+  contextFirewallValueReceipt,
+  packet,
+);
+
+const validationReceipt = createValidationValueReceipt(
+  packet,
+  result,
+  { mechanismRevision },
 );
 ```
 
@@ -90,12 +104,41 @@ including valid-but-insufficient escalation receipts; callers must inspect
 `sufficiency`. Exit code 1 means validation failure. Invocation or JSON errors
 use exit code 2.
 
+Successful validation also emits one stable named operator line on stderr, for
+example:
+
+```text
+[Decision Evidence] source-backed packet verified | SUFFICIENT | 7 claims checked
+```
+
+Canonical stdout remains byte-identical whether or not a full validation receipt
+is requested:
+
+```bash
+node ./bin/decision-evidence.js \
+  validate-context-firewall \
+  --packet packet.json \
+  --source-input source.json \
+  --mechanism-revision REVISION \
+  --value-receipt value-receipt.json
+```
+
+The producer's separate Context Firewall receipt can be cross-checked against
+the packet with `validate-context-firewall-value --receipt ... --packet ...`.
+Neither full receipt nor stderr should be merged automatically into compact
+decision-relevant model context.
+
+The Visible Value receipt reports performed checks, trust, sufficiency,
+rejections, and escalation. It does not claim token/cost/latency savings,
+preserved model correctness, or a failure prevented.
+
 ## Verification
 
 ```bash
 npm run lint
 npm test
 npm run conformance
+npm run determinism
 ```
 
 The self-contained conformance corpus contains 24 public-safe vectors: 9 valid

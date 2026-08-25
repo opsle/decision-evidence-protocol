@@ -7,7 +7,7 @@ export const CONTEXT_FIREWALL_INPUT_PROTOCOL =
   'opsle.context-firewall.test-run-input/v1';
 export const CONTEXT_FIREWALL_REDUCER =
   '@opsle/context-firewall/test-output';
-export const CONTEXT_FIREWALL_REDUCER_VERSION = '0.2.0';
+export const CONTEXT_FIREWALL_REDUCER_VERSION = '0.3.0';
 export const CONTEXT_FIREWALL_POLICY_REVISION =
   'tap-subset-policy/v1';
 

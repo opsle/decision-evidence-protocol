@@ -296,6 +296,10 @@ test('CLI emits machine-readable receipt-only validation', () => {
   const output = JSON.parse(result.stdout);
   assert.equal(output.classification, 'VALID_WITH_UNVERIFIED_SOURCE');
   assert.equal(output.sufficiency, 'SUFFICIENT');
+  assert.equal(
+    result.stderr,
+    '[Decision Evidence] packet validated | source unverified | SUFFICIENT | 5 claims checked\n',
+  );
 });
 
 test('CLI rejects malformed JSON with machine-readable control output', () => {

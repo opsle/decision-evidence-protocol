@@ -5,6 +5,7 @@ import {
   canonicalJson,
   validateContextFirewallPacket,
 } from './context-firewall-v1.js';
+import { validateContextFirewallValueReceipt } from './context-firewall-value.js';
 
 function clone(value) {
   return structuredClone(value);
@@ -98,10 +99,16 @@ export async function runContextFirewallConformance(options = {}) {
       sourceInput: vector.source_input,
     });
     const evaluation = evaluateExpectation(result, vector.expected);
+    const valueReceipt = validateContextFirewallValueReceipt(
+      vector.value_receipt,
+      vector.packet,
+    );
     results.push({
       ...evaluation,
       id: vector.id,
       kind: 'valid',
+      pass: evaluation.pass && valueReceipt.valid,
+      value_receipt_valid: valueReceipt.valid,
     });
   }
 

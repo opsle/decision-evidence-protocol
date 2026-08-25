@@ -5,7 +5,7 @@ import { resolve } from 'node:path';
 import process from 'node:process';
 import { pathToFileURL } from 'node:url';
 
-const EXPECTED_CONTEXT_FIREWALL_SHA = 'dd34bd9f681314761f1ca87f339648bf611811f3';
+const EXPECTED_CONTEXT_FIREWALL_SHA = '953c48f1cfd154d6b7ed10b51b87fe54e4df45f2';
 
 function parseArgs(args) {
   const options = {
@@ -63,6 +63,8 @@ async function main() {
       throw new Error(`producer fixture ${fixtureName} did not yield a valid packet`);
     }
     const packet = execution.packet;
+    const valueReceipt = execution.valueReceipt;
+    valueReceipt.mechanism.revision = head;
     const sufficiency = packet.decision_evidence.disposition;
     return {
       expected: expected(
@@ -74,6 +76,7 @@ async function main() {
       packet,
       producer_fixture: fixtureName,
       source_input: fixture.input,
+      value_receipt: valueReceipt,
     };
   });
 
