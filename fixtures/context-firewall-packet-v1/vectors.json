@@ -1,0 +1,1552 @@
+{
+  "context_firewall_revision": "dd34bd9f681314761f1ca87f339648bf611811f3",
+  "invalid_vectors": [
+    {
+      "id": "missing-required-field",
+      "base": "successful-reduced-run",
+      "packet_mutations": [
+        {
+          "op": "remove",
+          "path": "/receipt/input_hash"
+        }
+      ],
+      "expected": {
+        "classification": "STRUCTURALLY_INVALID",
+        "sufficiency": "INVALID",
+        "valid": false,
+        "violation_codes": [
+          "MALFORMED_SHA256"
+        ]
+      }
+    },
+    {
+      "id": "unsupported-schema-version",
+      "base": "successful-reduced-run",
+      "packet_mutations": [
+        {
+          "op": "replace",
+          "path": "/protocol_version",
+          "value": "opsle.context-firewall.evidence-packet/v2"
+        }
+      ],
+      "expected": {
+        "classification": "STRUCTURALLY_INVALID",
+        "sufficiency": "INVALID",
+        "valid": false,
+        "violation_codes": [
+          "UNSUPPORTED_PACKET_VERSION"
+        ]
+      }
+    },
+    {
+      "id": "malformed-hash",
+      "base": "successful-reduced-run",
+      "packet_mutations": [
+        {
+          "op": "replace",
+          "path": "/receipt/input_hash",
+          "value": "sha256:not-a-digest"
+        }
+      ],
+      "expected": {
+        "classification": "STRUCTURALLY_INVALID",
+        "sufficiency": "INVALID",
+        "valid": false,
+        "violation_codes": [
+          "MALFORMED_SHA256"
+        ]
+      }
+    },
+    {
+      "id": "wrong-source-hash",
+      "base": "successful-reduced-run",
+      "packet_mutations": [
+        {
+          "op": "replace",
+          "path": "/receipt/input_hash",
+          "value": "sha256:0000000000000000000000000000000000000000000000000000000000000000"
+        }
+      ],
+      "refresh_reduced_bytes": true,
+      "expected": {
+        "classification": "CRYPTOGRAPHIC_MISMATCH",
+        "sufficiency": "INVALID",
+        "valid": false,
+        "violation_codes": [
+          "INPUT_HASH_MISMATCH"
+        ]
+      }
+    },
+    {
+      "id": "wrong-reduced-packet-hash",
+      "base": "successful-reduced-run",
+      "packet_mutations": [
+        {
+          "op": "replace",
+          "path": "/receipt/semantic_payload_hash",
+          "value": "sha256:1111111111111111111111111111111111111111111111111111111111111111"
+        }
+      ],
+      "refresh_reduced_bytes": true,
+      "expected": {
+        "classification": "CRYPTOGRAPHIC_MISMATCH",
+        "sufficiency": "INVALID",
+        "valid": false,
+        "violation_codes": [
+          "SEMANTIC_PAYLOAD_HASH_MISMATCH"
+        ]
+      }
+    },
+    {
+      "id": "tampered-source-bytes",
+      "base": "successful-reduced-run",
+      "source_mutations": [
+        {
+          "op": "replace",
+          "path": "/streams/0/data",
+          "value": "TAP version 13\nok 1 - tampered\n1..1\n# tests 1\n# pass 1\n# fail 0\n# skipped 0\n"
+        }
+      ],
+      "expected": {
+        "classification": "CRYPTOGRAPHIC_MISMATCH",
+        "sufficiency": "INVALID",
+        "valid": false,
+        "violation_codes": [
+          "INPUT_HASH_MISMATCH"
+        ]
+      }
+    },
+    {
+      "id": "impossible-byte-counts",
+      "base": "successful-reduced-run",
+      "packet_mutations": [
+        {
+          "op": "replace",
+          "path": "/receipt/measurements/original_bytes",
+          "value": 105
+        }
+      ],
+      "refresh_reduced_bytes": true,
+      "expected": {
+        "classification": "INTERNALLY_INCONSISTENT",
+        "sufficiency": "INVALID",
+        "valid": false,
+        "violation_codes": [
+          "ORIGINAL_BYTE_COUNT_MISMATCH"
+        ]
+      }
+    },
+    {
+      "id": "impossible-evidence-counts",
+      "base": "successful-reduced-run",
+      "packet_mutations": [
+        {
+          "op": "replace",
+          "path": "/receipt/measurements/original_event_count",
+          "value": 1
+        }
+      ],
+      "refresh_reduced_bytes": true,
+      "expected": {
+        "classification": "INTERNALLY_INCONSISTENT",
+        "sufficiency": "INVALID",
+        "valid": false,
+        "violation_codes": [
+          "EVIDENCE_ACCOUNTING_MISMATCH"
+        ]
+      }
+    },
+    {
+      "id": "contradictory-suppression-accounting",
+      "base": "successful-reduced-run",
+      "packet_mutations": [
+        {
+          "op": "replace",
+          "path": "/receipt/suppressed/categories/successful_test",
+          "value": 3
+        }
+      ],
+      "refresh_reduced_bytes": true,
+      "expected": {
+        "classification": "INTERNALLY_INCONSISTENT",
+        "sufficiency": "INVALID",
+        "valid": false,
+        "violation_codes": [
+          "SUPPRESSION_CATEGORY_TOTAL_MISMATCH"
+        ]
+      }
+    },
+    {
+      "id": "invalid-escalation-state",
+      "base": "valid-needs-raw-evidence",
+      "packet_mutations": [
+        {
+          "op": "replace",
+          "path": "/receipt/raw_evidence/escalation_required",
+          "value": false
+        }
+      ],
+      "refresh_reduced_bytes": true,
+      "expected": {
+        "classification": "INTERNALLY_INCONSISTENT",
+        "sufficiency": "INVALID",
+        "valid": false,
+        "violation_codes": [
+          "ESCALATION_REQUIRED_MISMATCH"
+        ]
+      }
+    },
+    {
+      "id": "negative-measurement",
+      "base": "successful-reduced-run",
+      "packet_mutations": [
+        {
+          "op": "replace",
+          "path": "/receipt/measurements/suppressed_evidence_count",
+          "value": -1
+        }
+      ],
+      "expected": {
+        "classification": "STRUCTURALLY_INVALID",
+        "sufficiency": "INVALID",
+        "valid": false,
+        "violation_codes": [
+          "INVALID_MEASUREMENT"
+        ]
+      }
+    },
+    {
+      "id": "overflow-like-measurement",
+      "base": "successful-reduced-run",
+      "packet_mutations": [
+        {
+          "op": "replace",
+          "path": "/receipt/measurements/original_bytes",
+          "value": 9007199254740992
+        }
+      ],
+      "expected": {
+        "classification": "STRUCTURALLY_INVALID",
+        "sufficiency": "INVALID",
+        "valid": false,
+        "violation_codes": [
+          "INVALID_MEASUREMENT"
+        ]
+      }
+    },
+    {
+      "id": "malformed-raw-evidence-locator",
+      "base": "successful-reduced-run",
+      "packet_mutations": [
+        {
+          "op": "replace",
+          "path": "/receipt/raw_evidence/reference",
+          "value": ""
+        }
+      ],
+      "expected": {
+        "classification": "STRUCTURALLY_INVALID",
+        "sufficiency": "INVALID",
+        "valid": false,
+        "violation_codes": [
+          "INVALID_IDENTITY"
+        ]
+      }
+    },
+    {
+      "id": "false-sufficiency-claim",
+      "base": "valid-needs-raw-evidence",
+      "packet_mutations": [
+        {
+          "op": "replace",
+          "path": "/decision_evidence/disposition",
+          "value": "SUFFICIENT"
+        }
+      ],
+      "refresh_semantic_hash": true,
+      "refresh_reduced_bytes": true,
+      "expected": {
+        "classification": "INTERNALLY_INCONSISTENT",
+        "sufficiency": "INVALID",
+        "valid": false,
+        "violation_codes": [
+          "DISPOSITION_MISMATCH"
+        ]
+      }
+    },
+    {
+      "id": "wrong-reduced-byte-measurement",
+      "base": "successful-reduced-run",
+      "packet_mutations": [
+        {
+          "op": "replace",
+          "path": "/receipt/measurements/reduced_bytes",
+          "value": 1
+        }
+      ],
+      "expected": {
+        "classification": "INTERNALLY_INCONSISTENT",
+        "sufficiency": "INVALID",
+        "valid": false,
+        "violation_codes": [
+          "REDUCED_BYTE_COUNT_MISMATCH"
+        ]
+      }
+    }
+  ],
+  "protocol_version": "opsle.decision-evidence.context-firewall-conformance/v1",
+  "valid_vectors": [
+    {
+      "expected": {
+        "classification": "VALID",
+        "sufficiency": "SUFFICIENT",
+        "valid": true
+      },
+      "id": "successful-reduced-run",
+      "packet": {
+        "decision_evidence": {
+          "counts": {
+            "passed": 2,
+            "failed": 0,
+            "skipped": 0,
+            "total": 2
+          },
+          "disposition": "SUFFICIENT",
+          "failures": [],
+          "fatal_errors": [],
+          "process": {
+            "duration_ms": 12.5,
+            "exit_code": 0,
+            "interrupted": false
+          },
+          "reason_codes": [],
+          "source": {
+            "id": "synthetic-suite",
+            "run_id": "run-001"
+          },
+          "status": "passed",
+          "timeouts": [],
+          "unclassified_evidence": [],
+          "warnings": []
+        },
+        "operation_id": "op-synthetic-001",
+        "protocol_version": "opsle.context-firewall.evidence-packet/v1",
+        "receipt": {
+          "configuration": {
+            "identity": "sha256:0614f60cadb064fb8af6215cf804498049d57bea091b77157a4edde84cb00e2a",
+            "max_output_bytes": null,
+            "policy_revision": "tap-subset-policy/v1"
+          },
+          "input_hash": "sha256:a241d570cd2f4cbfc1e3769c3606b21317e78cae1ff298abf69223e09915480d",
+          "measurements": {
+            "original_bytes": 104,
+            "original_event_count": 9,
+            "reduced_bytes": 1824,
+            "retained_evidence_count": 0,
+            "suppressed_evidence_count": 9
+          },
+          "payload_limit": {
+            "affected": false,
+            "honored": true,
+            "requested_bytes": null
+          },
+          "raw_evidence": {
+            "destroyed_by_reducer": false,
+            "escalation_available": true,
+            "escalation_required": false,
+            "reference": "artifact://synthetic/run-001.tap",
+            "source_evidence_disposition": "CALLER_REFERENCE_SUPPLIED",
+            "suppressed_from_model_context": true
+          },
+          "receipt_version": 1,
+          "reducer": {
+            "name": "@opsle/context-firewall/test-output",
+            "version": "0.2.0"
+          },
+          "reduction_complete": true,
+          "retained": {
+            "categories": [
+              "aggregate_counts",
+              "process_status",
+              "run_verdict",
+              "stream_provenance"
+            ],
+            "event_count": 0
+          },
+          "semantic_payload_hash": "sha256:c5f859435187b89c8377b6426bfdf236a50e139fa632274ef08ae0445a64b006",
+          "source": {
+            "id": "synthetic-suite",
+            "protocol_version": "opsle.context-firewall.test-run-input/v1",
+            "run_id": "run-001",
+            "streams": [
+              {
+                "byte_count": 104,
+                "name": "stdout"
+              }
+            ]
+          },
+          "suppressed": {
+            "categories": {
+              "aggregate_source": 4,
+              "duration_source": 1,
+              "structure": 2,
+              "successful_test": 2
+            },
+            "event_count": 9
+          },
+          "unclassified_evidence_present": false
+        }
+      },
+      "producer_fixture": "normal/small-all-pass",
+      "source_input": {
+        "protocol_version": "opsle.context-firewall.test-run-input/v1",
+        "operation_id": "op-synthetic-001",
+        "source": {
+          "id": "synthetic-suite",
+          "run_id": "run-001",
+          "raw_evidence_ref": "artifact://synthetic/run-001.tap"
+        },
+        "process": {
+          "exit_code": 0,
+          "duration_ms": 12.5,
+          "interrupted": false
+        },
+        "streams": [
+          {
+            "name": "stdout",
+            "encoding": "utf8",
+            "data": "TAP version 13\nok 1 - alpha\nok 2 - beta\n1..2\n# tests 2\n# pass 2\n# fail 0\n# skipped 0\n# duration_ms 12.5\n"
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "classification": "VALID",
+        "sufficiency": "SUFFICIENT",
+        "valid": true
+      },
+      "id": "failed-test-packet",
+      "packet": {
+        "decision_evidence": {
+          "counts": {
+            "passed": 0,
+            "failed": 1,
+            "skipped": 0,
+            "total": 1
+          },
+          "disposition": "SUFFICIENT",
+          "failures": [
+            {
+              "identity": "adds values",
+              "header": {
+                "category": "failed_test",
+                "line": 2,
+                "sha256": "sha256:046179bd0e736713246c06c25fa603d820a5bde944eb99381daf58f871c8eaf7",
+                "stream": "stdout",
+                "text": "not ok 1 - adds values"
+              },
+              "details": [
+                {
+                  "category": "failure_message",
+                  "line": 3,
+                  "sha256": "sha256:4cddaa4098315b5304f16a9254e6977a2ac61a0dff32f6c771134c0ccbf20bfa",
+                  "stream": "stdout",
+                  "text": "  message: expected two"
+                },
+                {
+                  "category": "assertion",
+                  "line": 4,
+                  "sha256": "sha256:ad97252a03a228eb41f486aa996ed21f69d9c63c236dfbc48b41b736e5480c26",
+                  "stream": "stdout",
+                  "text": "  expected: 2"
+                },
+                {
+                  "category": "assertion",
+                  "line": 5,
+                  "sha256": "sha256:79e2b90d2f8c4f4a419caeffdc11d9c75ef54a6c7e3ef172f088c55c88bedd45",
+                  "stream": "stdout",
+                  "text": "  actual: 3"
+                }
+              ]
+            }
+          ],
+          "fatal_errors": [],
+          "process": {
+            "duration_ms": 12.5,
+            "exit_code": 1,
+            "interrupted": false
+          },
+          "reason_codes": [],
+          "source": {
+            "id": "synthetic-suite",
+            "run_id": "run-001"
+          },
+          "status": "failed",
+          "timeouts": [],
+          "unclassified_evidence": [],
+          "warnings": []
+        },
+        "operation_id": "op-synthetic-001",
+        "protocol_version": "opsle.context-firewall.evidence-packet/v1",
+        "receipt": {
+          "configuration": {
+            "identity": "sha256:0614f60cadb064fb8af6215cf804498049d57bea091b77157a4edde84cb00e2a",
+            "max_output_bytes": null,
+            "policy_revision": "tap-subset-policy/v1"
+          },
+          "input_hash": "sha256:b39c39b5cc00dd7177e6628b3a247967f2d9ad10b24a67f0512bed5321a83e12",
+          "measurements": {
+            "original_bytes": 152,
+            "original_event_count": 11,
+            "reduced_bytes": 2553,
+            "retained_evidence_count": 4,
+            "suppressed_evidence_count": 7
+          },
+          "payload_limit": {
+            "affected": false,
+            "honored": true,
+            "requested_bytes": null
+          },
+          "raw_evidence": {
+            "destroyed_by_reducer": false,
+            "escalation_available": true,
+            "escalation_required": false,
+            "reference": "artifact://synthetic/run-001.tap",
+            "source_evidence_disposition": "CALLER_REFERENCE_SUPPLIED",
+            "suppressed_from_model_context": true
+          },
+          "receipt_version": 1,
+          "reducer": {
+            "name": "@opsle/context-firewall/test-output",
+            "version": "0.2.0"
+          },
+          "reduction_complete": true,
+          "retained": {
+            "categories": [
+              "aggregate_counts",
+              "assertion",
+              "failed_test",
+              "failure_message",
+              "process_status",
+              "run_verdict",
+              "stream_provenance"
+            ],
+            "event_count": 4
+          },
+          "semantic_payload_hash": "sha256:a5aef42a220e82a4d629e81cadb3d2c14cf00cb383a7ba73abf96fa70261538f",
+          "source": {
+            "id": "synthetic-suite",
+            "protocol_version": "opsle.context-firewall.test-run-input/v1",
+            "run_id": "run-001",
+            "streams": [
+              {
+                "byte_count": 152,
+                "name": "stdout"
+              }
+            ]
+          },
+          "suppressed": {
+            "categories": {
+              "aggregate_source": 4,
+              "duration_source": 1,
+              "structure": 2
+            },
+            "event_count": 7
+          },
+          "unclassified_evidence_present": false
+        }
+      },
+      "producer_fixture": "failure/one",
+      "source_input": {
+        "protocol_version": "opsle.context-firewall.test-run-input/v1",
+        "operation_id": "op-synthetic-001",
+        "source": {
+          "id": "synthetic-suite",
+          "run_id": "run-001",
+          "raw_evidence_ref": "artifact://synthetic/run-001.tap"
+        },
+        "process": {
+          "exit_code": 1,
+          "duration_ms": 12.5,
+          "interrupted": false
+        },
+        "streams": [
+          {
+            "name": "stdout",
+            "encoding": "utf8",
+            "data": "TAP version 13\nnot ok 1 - adds values\n  message: expected two\n  expected: 2\n  actual: 3\n1..1\n# tests 1\n# pass 0\n# fail 1\n# skipped 0\n# duration_ms 12.5\n"
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "classification": "VALID",
+        "sufficiency": "SUFFICIENT",
+        "valid": true
+      },
+      "id": "multiple-failures",
+      "packet": {
+        "decision_evidence": {
+          "counts": {
+            "passed": 0,
+            "failed": 3,
+            "skipped": 0,
+            "total": 3
+          },
+          "disposition": "SUFFICIENT",
+          "failures": [
+            {
+              "identity": "first",
+              "header": {
+                "category": "failed_test",
+                "line": 2,
+                "sha256": "sha256:0ca8fead994ad5f1e121620c466a76223932d55ab606d0d395816d9a6a27771b",
+                "stream": "stdout",
+                "text": "not ok 1 - first"
+              },
+              "details": [
+                {
+                  "category": "failure_message",
+                  "line": 3,
+                  "sha256": "sha256:4480363b481c43cf8e8962bac58be2166bf191fbe0ea98253f7417629c49f8b6",
+                  "stream": "stdout",
+                  "text": "  message: first broke"
+                }
+              ]
+            },
+            {
+              "identity": "second",
+              "header": {
+                "category": "failed_test",
+                "line": 4,
+                "sha256": "sha256:51a606948184b3a8dd565e37efc3a31972518cfd28a887164780dc1d397dd1f2",
+                "stream": "stdout",
+                "text": "not ok 2 - second"
+              },
+              "details": [
+                {
+                  "category": "failure_message",
+                  "line": 5,
+                  "sha256": "sha256:ad3975f0874b3a6cdd116a56575bbb643772984c4c8974cf4c35b45a37ea0a6f",
+                  "stream": "stdout",
+                  "text": "  message: second broke"
+                }
+              ]
+            },
+            {
+              "identity": "third",
+              "header": {
+                "category": "failed_test",
+                "line": 6,
+                "sha256": "sha256:86f968b72a5f324a8f2c3a28cbce75d5ef7c918523f053d96c68ebf0eb586c9f",
+                "stream": "stdout",
+                "text": "not ok 3 - third"
+              },
+              "details": [
+                {
+                  "category": "failure_message",
+                  "line": 7,
+                  "sha256": "sha256:a6a911cae804f1913d3223879f44b2902b7d881fecdc7fa6ceee127173b0ecb9",
+                  "stream": "stdout",
+                  "text": "  message: third broke"
+                }
+              ]
+            }
+          ],
+          "fatal_errors": [],
+          "process": {
+            "duration_ms": 12.5,
+            "exit_code": 1,
+            "interrupted": false
+          },
+          "reason_codes": [],
+          "source": {
+            "id": "synthetic-suite",
+            "run_id": "run-001"
+          },
+          "status": "failed",
+          "timeouts": [],
+          "unclassified_evidence": [],
+          "warnings": []
+        },
+        "operation_id": "op-synthetic-001",
+        "protocol_version": "opsle.context-firewall.evidence-packet/v1",
+        "receipt": {
+          "configuration": {
+            "identity": "sha256:0614f60cadb064fb8af6215cf804498049d57bea091b77157a4edde84cb00e2a",
+            "max_output_bytes": null,
+            "policy_revision": "tap-subset-policy/v1"
+          },
+          "input_hash": "sha256:104a99176603c3bb2d387260331e5cb1a199c77f0bc722baecd575dc806e50bc",
+          "measurements": {
+            "original_bytes": 201,
+            "original_event_count": 13,
+            "reduced_bytes": 2973,
+            "retained_evidence_count": 6,
+            "suppressed_evidence_count": 7
+          },
+          "payload_limit": {
+            "affected": false,
+            "honored": true,
+            "requested_bytes": null
+          },
+          "raw_evidence": {
+            "destroyed_by_reducer": false,
+            "escalation_available": true,
+            "escalation_required": false,
+            "reference": "artifact://synthetic/run-001.tap",
+            "source_evidence_disposition": "CALLER_REFERENCE_SUPPLIED",
+            "suppressed_from_model_context": true
+          },
+          "receipt_version": 1,
+          "reducer": {
+            "name": "@opsle/context-firewall/test-output",
+            "version": "0.2.0"
+          },
+          "reduction_complete": true,
+          "retained": {
+            "categories": [
+              "aggregate_counts",
+              "failed_test",
+              "failure_message",
+              "process_status",
+              "run_verdict",
+              "stream_provenance"
+            ],
+            "event_count": 6
+          },
+          "semantic_payload_hash": "sha256:c09851d8d77f5525b9515d5194e690166a6d1d68a368bdc53777e2118f36974c",
+          "source": {
+            "id": "synthetic-suite",
+            "protocol_version": "opsle.context-firewall.test-run-input/v1",
+            "run_id": "run-001",
+            "streams": [
+              {
+                "byte_count": 201,
+                "name": "stdout"
+              }
+            ]
+          },
+          "suppressed": {
+            "categories": {
+              "aggregate_source": 4,
+              "duration_source": 1,
+              "structure": 2
+            },
+            "event_count": 7
+          },
+          "unclassified_evidence_present": false
+        }
+      },
+      "producer_fixture": "failure/several",
+      "source_input": {
+        "protocol_version": "opsle.context-firewall.test-run-input/v1",
+        "operation_id": "op-synthetic-001",
+        "source": {
+          "id": "synthetic-suite",
+          "run_id": "run-001",
+          "raw_evidence_ref": "artifact://synthetic/run-001.tap"
+        },
+        "process": {
+          "exit_code": 1,
+          "duration_ms": 12.5,
+          "interrupted": false
+        },
+        "streams": [
+          {
+            "name": "stdout",
+            "encoding": "utf8",
+            "data": "TAP version 13\nnot ok 1 - first\n  message: first broke\nnot ok 2 - second\n  message: second broke\nnot ok 3 - third\n  message: third broke\n1..3\n# tests 3\n# pass 0\n# fail 3\n# skipped 0\n# duration_ms 12.5\n"
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "classification": "VALID",
+        "sufficiency": "SUFFICIENT",
+        "valid": true
+      },
+      "id": "large-successful-suppression",
+      "packet": {
+        "decision_evidence": {
+          "counts": {
+            "passed": 1500,
+            "failed": 0,
+            "skipped": 0,
+            "total": 1500
+          },
+          "disposition": "SUFFICIENT",
+          "failures": [],
+          "fatal_errors": [],
+          "process": {
+            "duration_ms": 12.5,
+            "exit_code": 0,
+            "interrupted": false
+          },
+          "reason_codes": [],
+          "source": {
+            "id": "synthetic-suite",
+            "run_id": "run-001"
+          },
+          "status": "passed",
+          "timeouts": [],
+          "unclassified_evidence": [],
+          "warnings": []
+        },
+        "operation_id": "op-synthetic-001",
+        "protocol_version": "opsle.context-firewall.evidence-packet/v1",
+        "receipt": {
+          "configuration": {
+            "identity": "sha256:0614f60cadb064fb8af6215cf804498049d57bea091b77157a4edde84cb00e2a",
+            "max_output_bytes": null,
+            "policy_revision": "tap-subset-policy/v1"
+          },
+          "input_hash": "sha256:82ea05bab3fc9551830551372723ab484c5893f93b9ee88bbfaf9a1e9cf42abc",
+          "measurements": {
+            "original_bytes": 28981,
+            "original_event_count": 1507,
+            "reduced_bytes": 1846,
+            "retained_evidence_count": 0,
+            "suppressed_evidence_count": 1507
+          },
+          "payload_limit": {
+            "affected": false,
+            "honored": true,
+            "requested_bytes": null
+          },
+          "raw_evidence": {
+            "destroyed_by_reducer": false,
+            "escalation_available": true,
+            "escalation_required": false,
+            "reference": "artifact://synthetic/run-001.tap",
+            "source_evidence_disposition": "CALLER_REFERENCE_SUPPLIED",
+            "suppressed_from_model_context": true
+          },
+          "receipt_version": 1,
+          "reducer": {
+            "name": "@opsle/context-firewall/test-output",
+            "version": "0.2.0"
+          },
+          "reduction_complete": true,
+          "retained": {
+            "categories": [
+              "aggregate_counts",
+              "process_status",
+              "run_verdict",
+              "stream_provenance"
+            ],
+            "event_count": 0
+          },
+          "semantic_payload_hash": "sha256:d99849b21430365b8b3aefd974d26d625092874054c8c09d1eea69e84e9a4e49",
+          "source": {
+            "id": "synthetic-suite",
+            "protocol_version": "opsle.context-firewall.test-run-input/v1",
+            "run_id": "run-001",
+            "streams": [
+              {
+                "byte_count": 28981,
+                "name": "stdout"
+              }
+            ]
+          },
+          "suppressed": {
+            "categories": {
+              "aggregate_source": 4,
+              "duration_source": 1,
+              "structure": 2,
+              "successful_test": 1500
+            },
+            "event_count": 1507
+          },
+          "unclassified_evidence_present": false
+        }
+      },
+      "producer_fixture": "normal/large-all-pass",
+      "source_input": {
+        "protocol_version": "opsle.context-firewall.test-run-input/v1",
+        "operation_id": "op-synthetic-001",
+        "source": {
+          "id": "synthetic-suite",
+          "run_id": "run-001",
+          "raw_evidence_ref": "artifact://synthetic/run-001.tap"
+        },
+        "process": {
+          "exit_code": 0,
+          "duration_ms": 12.5,
+          "interrupted": false
+        },
+        "streams": [
+          {
+            "name": "stdout",
+            "encoding": "utf8",
+            "data": "TAP version 13\nok 1 - case-0001\nok 2 - case-0002\nok 3 - case-0003\nok 4 - case-0004\nok 5 - case-0005\nok 6 - case-0006\nok 7 - case-0007\nok 8 - case-0008\nok 9 - case-0009\nok 10 - case-0010\nok 11 - case-0011\nok 12 - case-0012\nok 13 - case-0013\nok 14 - case-0014\nok 15 - case-0015\nok 16 - case-0016\nok 17 - case-0017\nok 18 - case-0018\nok 19 - case-0019\nok 20 - case-0020\nok 21 - case-0021\nok 22 - case-0022\nok 23 - case-0023\nok 24 - case-0024\nok 25 - case-0025\nok 26 - case-0026\nok 27 - case-0027\nok 28 - case-0028\nok 29 - case-0029\nok 30 - case-0030\nok 31 - case-0031\nok 32 - case-0032\nok 33 - case-0033\nok 34 - case-0034\nok 35 - case-0035\nok 36 - case-0036\nok 37 - case-0037\nok 38 - case-0038\nok 39 - case-0039\nok 40 - case-0040\nok 41 - case-0041\nok 42 - case-0042\nok 43 - case-0043\nok 44 - case-0044\nok 45 - case-0045\nok 46 - case-0046\nok 47 - case-0047\nok 48 - case-0048\nok 49 - case-0049\nok 50 - case-0050\nok 51 - case-0051\nok 52 - case-0052\nok 53 - case-0053\nok 54 - case-0054\nok 55 - case-0055\nok 56 - case-0056\nok 57 - case-0057\nok 58 - case-0058\nok 59 - case-0059\nok 60 - case-0060\nok 61 - case-0061\nok 62 - case-0062\nok 63 - case-0063\nok 64 - case-0064\nok 65 - case-0065\nok 66 - case-0066\nok 67 - case-0067\nok 68 - case-0068\nok 69 - case-0069\nok 70 - case-0070\nok 71 - case-0071\nok 72 - case-0072\nok 73 - case-0073\nok 74 - case-0074\nok 75 - case-0075\nok 76 - case-0076\nok 77 - case-0077\nok 78 - case-0078\nok 79 - case-0079\nok 80 - case-0080\nok 81 - case-0081\nok 82 - case-0082\nok 83 - case-0083\nok 84 - case-0084\nok 85 - case-0085\nok 86 - case-0086\nok 87 - case-0087\nok 88 - case-0088\nok 89 - case-0089\nok 90 - case-0090\nok 91 - case-0091\nok 92 - case-0092\nok 93 - case-0093\nok 94 - case-0094\nok 95 - case-0095\nok 96 - case-0096\nok 97 - case-0097\nok 98 - case-0098\nok 99 - case-0099\nok 100 - case-0100\nok 101 - case-0101\nok 102 - case-0102\nok 103 - case-0103\nok 104 - case-0104\nok 105 - case-0105\nok 106 - case-0106\nok 107 - case-0107\nok 108 - case-0108\nok 109 - case-0109\nok 110 - case-0110\nok 111 - case-0111\nok 112 - case-0112\nok 113 - case-0113\nok 114 - case-0114\nok 115 - case-0115\nok 116 - case-0116\nok 117 - case-0117\nok 118 - case-0118\nok 119 - case-0119\nok 120 - case-0120\nok 121 - case-0121\nok 122 - case-0122\nok 123 - case-0123\nok 124 - case-0124\nok 125 - case-0125\nok 126 - case-0126\nok 127 - case-0127\nok 128 - case-0128\nok 129 - case-0129\nok 130 - case-0130\nok 131 - case-0131\nok 132 - case-0132\nok 133 - case-0133\nok 134 - case-0134\nok 135 - case-0135\nok 136 - case-0136\nok 137 - case-0137\nok 138 - case-0138\nok 139 - case-0139\nok 140 - case-0140\nok 141 - case-0141\nok 142 - case-0142\nok 143 - case-0143\nok 144 - case-0144\nok 145 - case-0145\nok 146 - case-0146\nok 147 - case-0147\nok 148 - case-0148\nok 149 - case-0149\nok 150 - case-0150\nok 151 - case-0151\nok 152 - case-0152\nok 153 - case-0153\nok 154 - case-0154\nok 155 - case-0155\nok 156 - case-0156\nok 157 - case-0157\nok 158 - case-0158\nok 159 - case-0159\nok 160 - case-0160\nok 161 - case-0161\nok 162 - case-0162\nok 163 - case-0163\nok 164 - case-0164\nok 165 - case-0165\nok 166 - case-0166\nok 167 - case-0167\nok 168 - case-0168\nok 169 - case-0169\nok 170 - case-0170\nok 171 - case-0171\nok 172 - case-0172\nok 173 - case-0173\nok 174 - case-0174\nok 175 - case-0175\nok 176 - case-0176\nok 177 - case-0177\nok 178 - case-0178\nok 179 - case-0179\nok 180 - case-0180\nok 181 - case-0181\nok 182 - case-0182\nok 183 - case-0183\nok 184 - case-0184\nok 185 - case-0185\nok 186 - case-0186\nok 187 - case-0187\nok 188 - case-0188\nok 189 - case-0189\nok 190 - case-0190\nok 191 - case-0191\nok 192 - case-0192\nok 193 - case-0193\nok 194 - case-0194\nok 195 - case-0195\nok 196 - case-0196\nok 197 - case-0197\nok 198 - case-0198\nok 199 - case-0199\nok 200 - case-0200\nok 201 - case-0201\nok 202 - case-0202\nok 203 - case-0203\nok 204 - case-0204\nok 205 - case-0205\nok 206 - case-0206\nok 207 - case-0207\nok 208 - case-0208\nok 209 - case-0209\nok 210 - case-0210\nok 211 - case-0211\nok 212 - case-0212\nok 213 - case-0213\nok 214 - case-0214\nok 215 - case-0215\nok 216 - case-0216\nok 217 - case-0217\nok 218 - case-0218\nok 219 - case-0219\nok 220 - case-0220\nok 221 - case-0221\nok 222 - case-0222\nok 223 - case-0223\nok 224 - case-0224\nok 225 - case-0225\nok 226 - case-0226\nok 227 - case-0227\nok 228 - case-0228\nok 229 - case-0229\nok 230 - case-0230\nok 231 - case-0231\nok 232 - case-0232\nok 233 - case-0233\nok 234 - case-0234\nok 235 - case-0235\nok 236 - case-0236\nok 237 - case-0237\nok 238 - case-0238\nok 239 - case-0239\nok 240 - case-0240\nok 241 - case-0241\nok 242 - case-0242\nok 243 - case-0243\nok 244 - case-0244\nok 245 - case-0245\nok 246 - case-0246\nok 247 - case-0247\nok 248 - case-0248\nok 249 - case-0249\nok 250 - case-0250\nok 251 - case-0251\nok 252 - case-0252\nok 253 - case-0253\nok 254 - case-0254\nok 255 - case-0255\nok 256 - case-0256\nok 257 - case-0257\nok 258 - case-0258\nok 259 - case-0259\nok 260 - case-0260\nok 261 - case-0261\nok 262 - case-0262\nok 263 - case-0263\nok 264 - case-0264\nok 265 - case-0265\nok 266 - case-0266\nok 267 - case-0267\nok 268 - case-0268\nok 269 - case-0269\nok 270 - case-0270\nok 271 - case-0271\nok 272 - case-0272\nok 273 - case-0273\nok 274 - case-0274\nok 275 - case-0275\nok 276 - case-0276\nok 277 - case-0277\nok 278 - case-0278\nok 279 - case-0279\nok 280 - case-0280\nok 281 - case-0281\nok 282 - case-0282\nok 283 - case-0283\nok 284 - case-0284\nok 285 - case-0285\nok 286 - case-0286\nok 287 - case-0287\nok 288 - case-0288\nok 289 - case-0289\nok 290 - case-0290\nok 291 - case-0291\nok 292 - case-0292\nok 293 - case-0293\nok 294 - case-0294\nok 295 - case-0295\nok 296 - case-0296\nok 297 - case-0297\nok 298 - case-0298\nok 299 - case-0299\nok 300 - case-0300\nok 301 - case-0301\nok 302 - case-0302\nok 303 - case-0303\nok 304 - case-0304\nok 305 - case-0305\nok 306 - case-0306\nok 307 - case-0307\nok 308 - case-0308\nok 309 - case-0309\nok 310 - case-0310\nok 311 - case-0311\nok 312 - case-0312\nok 313 - case-0313\nok 314 - case-0314\nok 315 - case-0315\nok 316 - case-0316\nok 317 - case-0317\nok 318 - case-0318\nok 319 - case-0319\nok 320 - case-0320\nok 321 - case-0321\nok 322 - case-0322\nok 323 - case-0323\nok 324 - case-0324\nok 325 - case-0325\nok 326 - case-0326\nok 327 - case-0327\nok 328 - case-0328\nok 329 - case-0329\nok 330 - case-0330\nok 331 - case-0331\nok 332 - case-0332\nok 333 - case-0333\nok 334 - case-0334\nok 335 - case-0335\nok 336 - case-0336\nok 337 - case-0337\nok 338 - case-0338\nok 339 - case-0339\nok 340 - case-0340\nok 341 - case-0341\nok 342 - case-0342\nok 343 - case-0343\nok 344 - case-0344\nok 345 - case-0345\nok 346 - case-0346\nok 347 - case-0347\nok 348 - case-0348\nok 349 - case-0349\nok 350 - case-0350\nok 351 - case-0351\nok 352 - case-0352\nok 353 - case-0353\nok 354 - case-0354\nok 355 - case-0355\nok 356 - case-0356\nok 357 - case-0357\nok 358 - case-0358\nok 359 - case-0359\nok 360 - case-0360\nok 361 - case-0361\nok 362 - case-0362\nok 363 - case-0363\nok 364 - case-0364\nok 365 - case-0365\nok 366 - case-0366\nok 367 - case-0367\nok 368 - case-0368\nok 369 - case-0369\nok 370 - case-0370\nok 371 - case-0371\nok 372 - case-0372\nok 373 - case-0373\nok 374 - case-0374\nok 375 - case-0375\nok 376 - case-0376\nok 377 - case-0377\nok 378 - case-0378\nok 379 - case-0379\nok 380 - case-0380\nok 381 - case-0381\nok 382 - case-0382\nok 383 - case-0383\nok 384 - case-0384\nok 385 - case-0385\nok 386 - case-0386\nok 387 - case-0387\nok 388 - case-0388\nok 389 - case-0389\nok 390 - case-0390\nok 391 - case-0391\nok 392 - case-0392\nok 393 - case-0393\nok 394 - case-0394\nok 395 - case-0395\nok 396 - case-0396\nok 397 - case-0397\nok 398 - case-0398\nok 399 - case-0399\nok 400 - case-0400\nok 401 - case-0401\nok 402 - case-0402\nok 403 - case-0403\nok 404 - case-0404\nok 405 - case-0405\nok 406 - case-0406\nok 407 - case-0407\nok 408 - case-0408\nok 409 - case-0409\nok 410 - case-0410\nok 411 - case-0411\nok 412 - case-0412\nok 413 - case-0413\nok 414 - case-0414\nok 415 - case-0415\nok 416 - case-0416\nok 417 - case-0417\nok 418 - case-0418\nok 419 - case-0419\nok 420 - case-0420\nok 421 - case-0421\nok 422 - case-0422\nok 423 - case-0423\nok 424 - case-0424\nok 425 - case-0425\nok 426 - case-0426\nok 427 - case-0427\nok 428 - case-0428\nok 429 - case-0429\nok 430 - case-0430\nok 431 - case-0431\nok 432 - case-0432\nok 433 - case-0433\nok 434 - case-0434\nok 435 - case-0435\nok 436 - case-0436\nok 437 - case-0437\nok 438 - case-0438\nok 439 - case-0439\nok 440 - case-0440\nok 441 - case-0441\nok 442 - case-0442\nok 443 - case-0443\nok 444 - case-0444\nok 445 - case-0445\nok 446 - case-0446\nok 447 - case-0447\nok 448 - case-0448\nok 449 - case-0449\nok 450 - case-0450\nok 451 - case-0451\nok 452 - case-0452\nok 453 - case-0453\nok 454 - case-0454\nok 455 - case-0455\nok 456 - case-0456\nok 457 - case-0457\nok 458 - case-0458\nok 459 - case-0459\nok 460 - case-0460\nok 461 - case-0461\nok 462 - case-0462\nok 463 - case-0463\nok 464 - case-0464\nok 465 - case-0465\nok 466 - case-0466\nok 467 - case-0467\nok 468 - case-0468\nok 469 - case-0469\nok 470 - case-0470\nok 471 - case-0471\nok 472 - case-0472\nok 473 - case-0473\nok 474 - case-0474\nok 475 - case-0475\nok 476 - case-0476\nok 477 - case-0477\nok 478 - case-0478\nok 479 - case-0479\nok 480 - case-0480\nok 481 - case-0481\nok 482 - case-0482\nok 483 - case-0483\nok 484 - case-0484\nok 485 - case-0485\nok 486 - case-0486\nok 487 - case-0487\nok 488 - case-0488\nok 489 - case-0489\nok 490 - case-0490\nok 491 - case-0491\nok 492 - case-0492\nok 493 - case-0493\nok 494 - case-0494\nok 495 - case-0495\nok 496 - case-0496\nok 497 - case-0497\nok 498 - case-0498\nok 499 - case-0499\nok 500 - case-0500\nok 501 - case-0501\nok 502 - case-0502\nok 503 - case-0503\nok 504 - case-0504\nok 505 - case-0505\nok 506 - case-0506\nok 507 - case-0507\nok 508 - case-0508\nok 509 - case-0509\nok 510 - case-0510\nok 511 - case-0511\nok 512 - case-0512\nok 513 - case-0513\nok 514 - case-0514\nok 515 - case-0515\nok 516 - case-0516\nok 517 - case-0517\nok 518 - case-0518\nok 519 - case-0519\nok 520 - case-0520\nok 521 - case-0521\nok 522 - case-0522\nok 523 - case-0523\nok 524 - case-0524\nok 525 - case-0525\nok 526 - case-0526\nok 527 - case-0527\nok 528 - case-0528\nok 529 - case-0529\nok 530 - case-0530\nok 531 - case-0531\nok 532 - case-0532\nok 533 - case-0533\nok 534 - case-0534\nok 535 - case-0535\nok 536 - case-0536\nok 537 - case-0537\nok 538 - case-0538\nok 539 - case-0539\nok 540 - case-0540\nok 541 - case-0541\nok 542 - case-0542\nok 543 - case-0543\nok 544 - case-0544\nok 545 - case-0545\nok 546 - case-0546\nok 547 - case-0547\nok 548 - case-0548\nok 549 - case-0549\nok 550 - case-0550\nok 551 - case-0551\nok 552 - case-0552\nok 553 - case-0553\nok 554 - case-0554\nok 555 - case-0555\nok 556 - case-0556\nok 557 - case-0557\nok 558 - case-0558\nok 559 - case-0559\nok 560 - case-0560\nok 561 - case-0561\nok 562 - case-0562\nok 563 - case-0563\nok 564 - case-0564\nok 565 - case-0565\nok 566 - case-0566\nok 567 - case-0567\nok 568 - case-0568\nok 569 - case-0569\nok 570 - case-0570\nok 571 - case-0571\nok 572 - case-0572\nok 573 - case-0573\nok 574 - case-0574\nok 575 - case-0575\nok 576 - case-0576\nok 577 - case-0577\nok 578 - case-0578\nok 579 - case-0579\nok 580 - case-0580\nok 581 - case-0581\nok 582 - case-0582\nok 583 - case-0583\nok 584 - case-0584\nok 585 - case-0585\nok 586 - case-0586\nok 587 - case-0587\nok 588 - case-0588\nok 589 - case-0589\nok 590 - case-0590\nok 591 - case-0591\nok 592 - case-0592\nok 593 - case-0593\nok 594 - case-0594\nok 595 - case-0595\nok 596 - case-0596\nok 597 - case-0597\nok 598 - case-0598\nok 599 - case-0599\nok 600 - case-0600\nok 601 - case-0601\nok 602 - case-0602\nok 603 - case-0603\nok 604 - case-0604\nok 605 - case-0605\nok 606 - case-0606\nok 607 - case-0607\nok 608 - case-0608\nok 609 - case-0609\nok 610 - case-0610\nok 611 - case-0611\nok 612 - case-0612\nok 613 - case-0613\nok 614 - case-0614\nok 615 - case-0615\nok 616 - case-0616\nok 617 - case-0617\nok 618 - case-0618\nok 619 - case-0619\nok 620 - case-0620\nok 621 - case-0621\nok 622 - case-0622\nok 623 - case-0623\nok 624 - case-0624\nok 625 - case-0625\nok 626 - case-0626\nok 627 - case-0627\nok 628 - case-0628\nok 629 - case-0629\nok 630 - case-0630\nok 631 - case-0631\nok 632 - case-0632\nok 633 - case-0633\nok 634 - case-0634\nok 635 - case-0635\nok 636 - case-0636\nok 637 - case-0637\nok 638 - case-0638\nok 639 - case-0639\nok 640 - case-0640\nok 641 - case-0641\nok 642 - case-0642\nok 643 - case-0643\nok 644 - case-0644\nok 645 - case-0645\nok 646 - case-0646\nok 647 - case-0647\nok 648 - case-0648\nok 649 - case-0649\nok 650 - case-0650\nok 651 - case-0651\nok 652 - case-0652\nok 653 - case-0653\nok 654 - case-0654\nok 655 - case-0655\nok 656 - case-0656\nok 657 - case-0657\nok 658 - case-0658\nok 659 - case-0659\nok 660 - case-0660\nok 661 - case-0661\nok 662 - case-0662\nok 663 - case-0663\nok 664 - case-0664\nok 665 - case-0665\nok 666 - case-0666\nok 667 - case-0667\nok 668 - case-0668\nok 669 - case-0669\nok 670 - case-0670\nok 671 - case-0671\nok 672 - case-0672\nok 673 - case-0673\nok 674 - case-0674\nok 675 - case-0675\nok 676 - case-0676\nok 677 - case-0677\nok 678 - case-0678\nok 679 - case-0679\nok 680 - case-0680\nok 681 - case-0681\nok 682 - case-0682\nok 683 - case-0683\nok 684 - case-0684\nok 685 - case-0685\nok 686 - case-0686\nok 687 - case-0687\nok 688 - case-0688\nok 689 - case-0689\nok 690 - case-0690\nok 691 - case-0691\nok 692 - case-0692\nok 693 - case-0693\nok 694 - case-0694\nok 695 - case-0695\nok 696 - case-0696\nok 697 - case-0697\nok 698 - case-0698\nok 699 - case-0699\nok 700 - case-0700\nok 701 - case-0701\nok 702 - case-0702\nok 703 - case-0703\nok 704 - case-0704\nok 705 - case-0705\nok 706 - case-0706\nok 707 - case-0707\nok 708 - case-0708\nok 709 - case-0709\nok 710 - case-0710\nok 711 - case-0711\nok 712 - case-0712\nok 713 - case-0713\nok 714 - case-0714\nok 715 - case-0715\nok 716 - case-0716\nok 717 - case-0717\nok 718 - case-0718\nok 719 - case-0719\nok 720 - case-0720\nok 721 - case-0721\nok 722 - case-0722\nok 723 - case-0723\nok 724 - case-0724\nok 725 - case-0725\nok 726 - case-0726\nok 727 - case-0727\nok 728 - case-0728\nok 729 - case-0729\nok 730 - case-0730\nok 731 - case-0731\nok 732 - case-0732\nok 733 - case-0733\nok 734 - case-0734\nok 735 - case-0735\nok 736 - case-0736\nok 737 - case-0737\nok 738 - case-0738\nok 739 - case-0739\nok 740 - case-0740\nok 741 - case-0741\nok 742 - case-0742\nok 743 - case-0743\nok 744 - case-0744\nok 745 - case-0745\nok 746 - case-0746\nok 747 - case-0747\nok 748 - case-0748\nok 749 - case-0749\nok 750 - case-0750\nok 751 - case-0751\nok 752 - case-0752\nok 753 - case-0753\nok 754 - case-0754\nok 755 - case-0755\nok 756 - case-0756\nok 757 - case-0757\nok 758 - case-0758\nok 759 - case-0759\nok 760 - case-0760\nok 761 - case-0761\nok 762 - case-0762\nok 763 - case-0763\nok 764 - case-0764\nok 765 - case-0765\nok 766 - case-0766\nok 767 - case-0767\nok 768 - case-0768\nok 769 - case-0769\nok 770 - case-0770\nok 771 - case-0771\nok 772 - case-0772\nok 773 - case-0773\nok 774 - case-0774\nok 775 - case-0775\nok 776 - case-0776\nok 777 - case-0777\nok 778 - case-0778\nok 779 - case-0779\nok 780 - case-0780\nok 781 - case-0781\nok 782 - case-0782\nok 783 - case-0783\nok 784 - case-0784\nok 785 - case-0785\nok 786 - case-0786\nok 787 - case-0787\nok 788 - case-0788\nok 789 - case-0789\nok 790 - case-0790\nok 791 - case-0791\nok 792 - case-0792\nok 793 - case-0793\nok 794 - case-0794\nok 795 - case-0795\nok 796 - case-0796\nok 797 - case-0797\nok 798 - case-0798\nok 799 - case-0799\nok 800 - case-0800\nok 801 - case-0801\nok 802 - case-0802\nok 803 - case-0803\nok 804 - case-0804\nok 805 - case-0805\nok 806 - case-0806\nok 807 - case-0807\nok 808 - case-0808\nok 809 - case-0809\nok 810 - case-0810\nok 811 - case-0811\nok 812 - case-0812\nok 813 - case-0813\nok 814 - case-0814\nok 815 - case-0815\nok 816 - case-0816\nok 817 - case-0817\nok 818 - case-0818\nok 819 - case-0819\nok 820 - case-0820\nok 821 - case-0821\nok 822 - case-0822\nok 823 - case-0823\nok 824 - case-0824\nok 825 - case-0825\nok 826 - case-0826\nok 827 - case-0827\nok 828 - case-0828\nok 829 - case-0829\nok 830 - case-0830\nok 831 - case-0831\nok 832 - case-0832\nok 833 - case-0833\nok 834 - case-0834\nok 835 - case-0835\nok 836 - case-0836\nok 837 - case-0837\nok 838 - case-0838\nok 839 - case-0839\nok 840 - case-0840\nok 841 - case-0841\nok 842 - case-0842\nok 843 - case-0843\nok 844 - case-0844\nok 845 - case-0845\nok 846 - case-0846\nok 847 - case-0847\nok 848 - case-0848\nok 849 - case-0849\nok 850 - case-0850\nok 851 - case-0851\nok 852 - case-0852\nok 853 - case-0853\nok 854 - case-0854\nok 855 - case-0855\nok 856 - case-0856\nok 857 - case-0857\nok 858 - case-0858\nok 859 - case-0859\nok 860 - case-0860\nok 861 - case-0861\nok 862 - case-0862\nok 863 - case-0863\nok 864 - case-0864\nok 865 - case-0865\nok 866 - case-0866\nok 867 - case-0867\nok 868 - case-0868\nok 869 - case-0869\nok 870 - case-0870\nok 871 - case-0871\nok 872 - case-0872\nok 873 - case-0873\nok 874 - case-0874\nok 875 - case-0875\nok 876 - case-0876\nok 877 - case-0877\nok 878 - case-0878\nok 879 - case-0879\nok 880 - case-0880\nok 881 - case-0881\nok 882 - case-0882\nok 883 - case-0883\nok 884 - case-0884\nok 885 - case-0885\nok 886 - case-0886\nok 887 - case-0887\nok 888 - case-0888\nok 889 - case-0889\nok 890 - case-0890\nok 891 - case-0891\nok 892 - case-0892\nok 893 - case-0893\nok 894 - case-0894\nok 895 - case-0895\nok 896 - case-0896\nok 897 - case-0897\nok 898 - case-0898\nok 899 - case-0899\nok 900 - case-0900\nok 901 - case-0901\nok 902 - case-0902\nok 903 - case-0903\nok 904 - case-0904\nok 905 - case-0905\nok 906 - case-0906\nok 907 - case-0907\nok 908 - case-0908\nok 909 - case-0909\nok 910 - case-0910\nok 911 - case-0911\nok 912 - case-0912\nok 913 - case-0913\nok 914 - case-0914\nok 915 - case-0915\nok 916 - case-0916\nok 917 - case-0917\nok 918 - case-0918\nok 919 - case-0919\nok 920 - case-0920\nok 921 - case-0921\nok 922 - case-0922\nok 923 - case-0923\nok 924 - case-0924\nok 925 - case-0925\nok 926 - case-0926\nok 927 - case-0927\nok 928 - case-0928\nok 929 - case-0929\nok 930 - case-0930\nok 931 - case-0931\nok 932 - case-0932\nok 933 - case-0933\nok 934 - case-0934\nok 935 - case-0935\nok 936 - case-0936\nok 937 - case-0937\nok 938 - case-0938\nok 939 - case-0939\nok 940 - case-0940\nok 941 - case-0941\nok 942 - case-0942\nok 943 - case-0943\nok 944 - case-0944\nok 945 - case-0945\nok 946 - case-0946\nok 947 - case-0947\nok 948 - case-0948\nok 949 - case-0949\nok 950 - case-0950\nok 951 - case-0951\nok 952 - case-0952\nok 953 - case-0953\nok 954 - case-0954\nok 955 - case-0955\nok 956 - case-0956\nok 957 - case-0957\nok 958 - case-0958\nok 959 - case-0959\nok 960 - case-0960\nok 961 - case-0961\nok 962 - case-0962\nok 963 - case-0963\nok 964 - case-0964\nok 965 - case-0965\nok 966 - case-0966\nok 967 - case-0967\nok 968 - case-0968\nok 969 - case-0969\nok 970 - case-0970\nok 971 - case-0971\nok 972 - case-0972\nok 973 - case-0973\nok 974 - case-0974\nok 975 - case-0975\nok 976 - case-0976\nok 977 - case-0977\nok 978 - case-0978\nok 979 - case-0979\nok 980 - case-0980\nok 981 - case-0981\nok 982 - case-0982\nok 983 - case-0983\nok 984 - case-0984\nok 985 - case-0985\nok 986 - case-0986\nok 987 - case-0987\nok 988 - case-0988\nok 989 - case-0989\nok 990 - case-0990\nok 991 - case-0991\nok 992 - case-0992\nok 993 - case-0993\nok 994 - case-0994\nok 995 - case-0995\nok 996 - case-0996\nok 997 - case-0997\nok 998 - case-0998\nok 999 - case-0999\nok 1000 - case-1000\nok 1001 - case-1001\nok 1002 - case-1002\nok 1003 - case-1003\nok 1004 - case-1004\nok 1005 - case-1005\nok 1006 - case-1006\nok 1007 - case-1007\nok 1008 - case-1008\nok 1009 - case-1009\nok 1010 - case-1010\nok 1011 - case-1011\nok 1012 - case-1012\nok 1013 - case-1013\nok 1014 - case-1014\nok 1015 - case-1015\nok 1016 - case-1016\nok 1017 - case-1017\nok 1018 - case-1018\nok 1019 - case-1019\nok 1020 - case-1020\nok 1021 - case-1021\nok 1022 - case-1022\nok 1023 - case-1023\nok 1024 - case-1024\nok 1025 - case-1025\nok 1026 - case-1026\nok 1027 - case-1027\nok 1028 - case-1028\nok 1029 - case-1029\nok 1030 - case-1030\nok 1031 - case-1031\nok 1032 - case-1032\nok 1033 - case-1033\nok 1034 - case-1034\nok 1035 - case-1035\nok 1036 - case-1036\nok 1037 - case-1037\nok 1038 - case-1038\nok 1039 - case-1039\nok 1040 - case-1040\nok 1041 - case-1041\nok 1042 - case-1042\nok 1043 - case-1043\nok 1044 - case-1044\nok 1045 - case-1045\nok 1046 - case-1046\nok 1047 - case-1047\nok 1048 - case-1048\nok 1049 - case-1049\nok 1050 - case-1050\nok 1051 - case-1051\nok 1052 - case-1052\nok 1053 - case-1053\nok 1054 - case-1054\nok 1055 - case-1055\nok 1056 - case-1056\nok 1057 - case-1057\nok 1058 - case-1058\nok 1059 - case-1059\nok 1060 - case-1060\nok 1061 - case-1061\nok 1062 - case-1062\nok 1063 - case-1063\nok 1064 - case-1064\nok 1065 - case-1065\nok 1066 - case-1066\nok 1067 - case-1067\nok 1068 - case-1068\nok 1069 - case-1069\nok 1070 - case-1070\nok 1071 - case-1071\nok 1072 - case-1072\nok 1073 - case-1073\nok 1074 - case-1074\nok 1075 - case-1075\nok 1076 - case-1076\nok 1077 - case-1077\nok 1078 - case-1078\nok 1079 - case-1079\nok 1080 - case-1080\nok 1081 - case-1081\nok 1082 - case-1082\nok 1083 - case-1083\nok 1084 - case-1084\nok 1085 - case-1085\nok 1086 - case-1086\nok 1087 - case-1087\nok 1088 - case-1088\nok 1089 - case-1089\nok 1090 - case-1090\nok 1091 - case-1091\nok 1092 - case-1092\nok 1093 - case-1093\nok 1094 - case-1094\nok 1095 - case-1095\nok 1096 - case-1096\nok 1097 - case-1097\nok 1098 - case-1098\nok 1099 - case-1099\nok 1100 - case-1100\nok 1101 - case-1101\nok 1102 - case-1102\nok 1103 - case-1103\nok 1104 - case-1104\nok 1105 - case-1105\nok 1106 - case-1106\nok 1107 - case-1107\nok 1108 - case-1108\nok 1109 - case-1109\nok 1110 - case-1110\nok 1111 - case-1111\nok 1112 - case-1112\nok 1113 - case-1113\nok 1114 - case-1114\nok 1115 - case-1115\nok 1116 - case-1116\nok 1117 - case-1117\nok 1118 - case-1118\nok 1119 - case-1119\nok 1120 - case-1120\nok 1121 - case-1121\nok 1122 - case-1122\nok 1123 - case-1123\nok 1124 - case-1124\nok 1125 - case-1125\nok 1126 - case-1126\nok 1127 - case-1127\nok 1128 - case-1128\nok 1129 - case-1129\nok 1130 - case-1130\nok 1131 - case-1131\nok 1132 - case-1132\nok 1133 - case-1133\nok 1134 - case-1134\nok 1135 - case-1135\nok 1136 - case-1136\nok 1137 - case-1137\nok 1138 - case-1138\nok 1139 - case-1139\nok 1140 - case-1140\nok 1141 - case-1141\nok 1142 - case-1142\nok 1143 - case-1143\nok 1144 - case-1144\nok 1145 - case-1145\nok 1146 - case-1146\nok 1147 - case-1147\nok 1148 - case-1148\nok 1149 - case-1149\nok 1150 - case-1150\nok 1151 - case-1151\nok 1152 - case-1152\nok 1153 - case-1153\nok 1154 - case-1154\nok 1155 - case-1155\nok 1156 - case-1156\nok 1157 - case-1157\nok 1158 - case-1158\nok 1159 - case-1159\nok 1160 - case-1160\nok 1161 - case-1161\nok 1162 - case-1162\nok 1163 - case-1163\nok 1164 - case-1164\nok 1165 - case-1165\nok 1166 - case-1166\nok 1167 - case-1167\nok 1168 - case-1168\nok 1169 - case-1169\nok 1170 - case-1170\nok 1171 - case-1171\nok 1172 - case-1172\nok 1173 - case-1173\nok 1174 - case-1174\nok 1175 - case-1175\nok 1176 - case-1176\nok 1177 - case-1177\nok 1178 - case-1178\nok 1179 - case-1179\nok 1180 - case-1180\nok 1181 - case-1181\nok 1182 - case-1182\nok 1183 - case-1183\nok 1184 - case-1184\nok 1185 - case-1185\nok 1186 - case-1186\nok 1187 - case-1187\nok 1188 - case-1188\nok 1189 - case-1189\nok 1190 - case-1190\nok 1191 - case-1191\nok 1192 - case-1192\nok 1193 - case-1193\nok 1194 - case-1194\nok 1195 - case-1195\nok 1196 - case-1196\nok 1197 - case-1197\nok 1198 - case-1198\nok 1199 - case-1199\nok 1200 - case-1200\nok 1201 - case-1201\nok 1202 - case-1202\nok 1203 - case-1203\nok 1204 - case-1204\nok 1205 - case-1205\nok 1206 - case-1206\nok 1207 - case-1207\nok 1208 - case-1208\nok 1209 - case-1209\nok 1210 - case-1210\nok 1211 - case-1211\nok 1212 - case-1212\nok 1213 - case-1213\nok 1214 - case-1214\nok 1215 - case-1215\nok 1216 - case-1216\nok 1217 - case-1217\nok 1218 - case-1218\nok 1219 - case-1219\nok 1220 - case-1220\nok 1221 - case-1221\nok 1222 - case-1222\nok 1223 - case-1223\nok 1224 - case-1224\nok 1225 - case-1225\nok 1226 - case-1226\nok 1227 - case-1227\nok 1228 - case-1228\nok 1229 - case-1229\nok 1230 - case-1230\nok 1231 - case-1231\nok 1232 - case-1232\nok 1233 - case-1233\nok 1234 - case-1234\nok 1235 - case-1235\nok 1236 - case-1236\nok 1237 - case-1237\nok 1238 - case-1238\nok 1239 - case-1239\nok 1240 - case-1240\nok 1241 - case-1241\nok 1242 - case-1242\nok 1243 - case-1243\nok 1244 - case-1244\nok 1245 - case-1245\nok 1246 - case-1246\nok 1247 - case-1247\nok 1248 - case-1248\nok 1249 - case-1249\nok 1250 - case-1250\nok 1251 - case-1251\nok 1252 - case-1252\nok 1253 - case-1253\nok 1254 - case-1254\nok 1255 - case-1255\nok 1256 - case-1256\nok 1257 - case-1257\nok 1258 - case-1258\nok 1259 - case-1259\nok 1260 - case-1260\nok 1261 - case-1261\nok 1262 - case-1262\nok 1263 - case-1263\nok 1264 - case-1264\nok 1265 - case-1265\nok 1266 - case-1266\nok 1267 - case-1267\nok 1268 - case-1268\nok 1269 - case-1269\nok 1270 - case-1270\nok 1271 - case-1271\nok 1272 - case-1272\nok 1273 - case-1273\nok 1274 - case-1274\nok 1275 - case-1275\nok 1276 - case-1276\nok 1277 - case-1277\nok 1278 - case-1278\nok 1279 - case-1279\nok 1280 - case-1280\nok 1281 - case-1281\nok 1282 - case-1282\nok 1283 - case-1283\nok 1284 - case-1284\nok 1285 - case-1285\nok 1286 - case-1286\nok 1287 - case-1287\nok 1288 - case-1288\nok 1289 - case-1289\nok 1290 - case-1290\nok 1291 - case-1291\nok 1292 - case-1292\nok 1293 - case-1293\nok 1294 - case-1294\nok 1295 - case-1295\nok 1296 - case-1296\nok 1297 - case-1297\nok 1298 - case-1298\nok 1299 - case-1299\nok 1300 - case-1300\nok 1301 - case-1301\nok 1302 - case-1302\nok 1303 - case-1303\nok 1304 - case-1304\nok 1305 - case-1305\nok 1306 - case-1306\nok 1307 - case-1307\nok 1308 - case-1308\nok 1309 - case-1309\nok 1310 - case-1310\nok 1311 - case-1311\nok 1312 - case-1312\nok 1313 - case-1313\nok 1314 - case-1314\nok 1315 - case-1315\nok 1316 - case-1316\nok 1317 - case-1317\nok 1318 - case-1318\nok 1319 - case-1319\nok 1320 - case-1320\nok 1321 - case-1321\nok 1322 - case-1322\nok 1323 - case-1323\nok 1324 - case-1324\nok 1325 - case-1325\nok 1326 - case-1326\nok 1327 - case-1327\nok 1328 - case-1328\nok 1329 - case-1329\nok 1330 - case-1330\nok 1331 - case-1331\nok 1332 - case-1332\nok 1333 - case-1333\nok 1334 - case-1334\nok 1335 - case-1335\nok 1336 - case-1336\nok 1337 - case-1337\nok 1338 - case-1338\nok 1339 - case-1339\nok 1340 - case-1340\nok 1341 - case-1341\nok 1342 - case-1342\nok 1343 - case-1343\nok 1344 - case-1344\nok 1345 - case-1345\nok 1346 - case-1346\nok 1347 - case-1347\nok 1348 - case-1348\nok 1349 - case-1349\nok 1350 - case-1350\nok 1351 - case-1351\nok 1352 - case-1352\nok 1353 - case-1353\nok 1354 - case-1354\nok 1355 - case-1355\nok 1356 - case-1356\nok 1357 - case-1357\nok 1358 - case-1358\nok 1359 - case-1359\nok 1360 - case-1360\nok 1361 - case-1361\nok 1362 - case-1362\nok 1363 - case-1363\nok 1364 - case-1364\nok 1365 - case-1365\nok 1366 - case-1366\nok 1367 - case-1367\nok 1368 - case-1368\nok 1369 - case-1369\nok 1370 - case-1370\nok 1371 - case-1371\nok 1372 - case-1372\nok 1373 - case-1373\nok 1374 - case-1374\nok 1375 - case-1375\nok 1376 - case-1376\nok 1377 - case-1377\nok 1378 - case-1378\nok 1379 - case-1379\nok 1380 - case-1380\nok 1381 - case-1381\nok 1382 - case-1382\nok 1383 - case-1383\nok 1384 - case-1384\nok 1385 - case-1385\nok 1386 - case-1386\nok 1387 - case-1387\nok 1388 - case-1388\nok 1389 - case-1389\nok 1390 - case-1390\nok 1391 - case-1391\nok 1392 - case-1392\nok 1393 - case-1393\nok 1394 - case-1394\nok 1395 - case-1395\nok 1396 - case-1396\nok 1397 - case-1397\nok 1398 - case-1398\nok 1399 - case-1399\nok 1400 - case-1400\nok 1401 - case-1401\nok 1402 - case-1402\nok 1403 - case-1403\nok 1404 - case-1404\nok 1405 - case-1405\nok 1406 - case-1406\nok 1407 - case-1407\nok 1408 - case-1408\nok 1409 - case-1409\nok 1410 - case-1410\nok 1411 - case-1411\nok 1412 - case-1412\nok 1413 - case-1413\nok 1414 - case-1414\nok 1415 - case-1415\nok 1416 - case-1416\nok 1417 - case-1417\nok 1418 - case-1418\nok 1419 - case-1419\nok 1420 - case-1420\nok 1421 - case-1421\nok 1422 - case-1422\nok 1423 - case-1423\nok 1424 - case-1424\nok 1425 - case-1425\nok 1426 - case-1426\nok 1427 - case-1427\nok 1428 - case-1428\nok 1429 - case-1429\nok 1430 - case-1430\nok 1431 - case-1431\nok 1432 - case-1432\nok 1433 - case-1433\nok 1434 - case-1434\nok 1435 - case-1435\nok 1436 - case-1436\nok 1437 - case-1437\nok 1438 - case-1438\nok 1439 - case-1439\nok 1440 - case-1440\nok 1441 - case-1441\nok 1442 - case-1442\nok 1443 - case-1443\nok 1444 - case-1444\nok 1445 - case-1445\nok 1446 - case-1446\nok 1447 - case-1447\nok 1448 - case-1448\nok 1449 - case-1449\nok 1450 - case-1450\nok 1451 - case-1451\nok 1452 - case-1452\nok 1453 - case-1453\nok 1454 - case-1454\nok 1455 - case-1455\nok 1456 - case-1456\nok 1457 - case-1457\nok 1458 - case-1458\nok 1459 - case-1459\nok 1460 - case-1460\nok 1461 - case-1461\nok 1462 - case-1462\nok 1463 - case-1463\nok 1464 - case-1464\nok 1465 - case-1465\nok 1466 - case-1466\nok 1467 - case-1467\nok 1468 - case-1468\nok 1469 - case-1469\nok 1470 - case-1470\nok 1471 - case-1471\nok 1472 - case-1472\nok 1473 - case-1473\nok 1474 - case-1474\nok 1475 - case-1475\nok 1476 - case-1476\nok 1477 - case-1477\nok 1478 - case-1478\nok 1479 - case-1479\nok 1480 - case-1480\nok 1481 - case-1481\nok 1482 - case-1482\nok 1483 - case-1483\nok 1484 - case-1484\nok 1485 - case-1485\nok 1486 - case-1486\nok 1487 - case-1487\nok 1488 - case-1488\nok 1489 - case-1489\nok 1490 - case-1490\nok 1491 - case-1491\nok 1492 - case-1492\nok 1493 - case-1493\nok 1494 - case-1494\nok 1495 - case-1495\nok 1496 - case-1496\nok 1497 - case-1497\nok 1498 - case-1498\nok 1499 - case-1499\nok 1500 - case-1500\n1..1500\n# tests 1500\n# pass 1500\n# fail 0\n# skipped 0\n# duration_ms 12.5\n"
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "classification": "VALID",
+        "sufficiency": "SUFFICIENT",
+        "valid": true
+      },
+      "id": "valid-raw-evidence-reference",
+      "packet": {
+        "decision_evidence": {
+          "counts": {
+            "passed": 1,
+            "failed": 0,
+            "skipped": 0,
+            "total": 1
+          },
+          "disposition": "SUFFICIENT",
+          "failures": [],
+          "fatal_errors": [],
+          "process": {
+            "duration_ms": 12.5,
+            "exit_code": 0,
+            "interrupted": false
+          },
+          "reason_codes": [],
+          "source": {
+            "id": "synthetic-suite",
+            "run_id": "run-001"
+          },
+          "status": "passed",
+          "timeouts": [],
+          "unclassified_evidence": [],
+          "warnings": []
+        },
+        "operation_id": "op-synthetic-001",
+        "protocol_version": "opsle.context-firewall.evidence-packet/v1",
+        "receipt": {
+          "configuration": {
+            "identity": "sha256:0614f60cadb064fb8af6215cf804498049d57bea091b77157a4edde84cb00e2a",
+            "max_output_bytes": null,
+            "policy_revision": "tap-subset-policy/v1"
+          },
+          "input_hash": "sha256:791657819fc5951657ff6cbdaa1fca425944a52aa1613fb2e8cd81603ed58352",
+          "measurements": {
+            "original_bytes": 98,
+            "original_event_count": 8,
+            "reduced_bytes": 1822,
+            "retained_evidence_count": 0,
+            "suppressed_evidence_count": 8
+          },
+          "payload_limit": {
+            "affected": false,
+            "honored": true,
+            "requested_bytes": null
+          },
+          "raw_evidence": {
+            "destroyed_by_reducer": false,
+            "escalation_available": true,
+            "escalation_required": false,
+            "reference": "artifact://synthetic/run-001.tap",
+            "source_evidence_disposition": "CALLER_REFERENCE_SUPPLIED",
+            "suppressed_from_model_context": true
+          },
+          "receipt_version": 1,
+          "reducer": {
+            "name": "@opsle/context-firewall/test-output",
+            "version": "0.2.0"
+          },
+          "reduction_complete": true,
+          "retained": {
+            "categories": [
+              "aggregate_counts",
+              "process_status",
+              "run_verdict",
+              "stream_provenance"
+            ],
+            "event_count": 0
+          },
+          "semantic_payload_hash": "sha256:836ed51a0e11a3552de9a3625db6a0558dd8f5538c2f7ba590679790a1e196fb",
+          "source": {
+            "id": "synthetic-suite",
+            "protocol_version": "opsle.context-firewall.test-run-input/v1",
+            "run_id": "run-001",
+            "streams": [
+              {
+                "byte_count": 98,
+                "name": "stdout"
+              }
+            ]
+          },
+          "suppressed": {
+            "categories": {
+              "aggregate_source": 4,
+              "duration_source": 1,
+              "structure": 2,
+              "successful_test": 1
+            },
+            "event_count": 8
+          },
+          "unclassified_evidence_present": false
+        }
+      },
+      "producer_fixture": "provenance/raw-reference-present",
+      "source_input": {
+        "protocol_version": "opsle.context-firewall.test-run-input/v1",
+        "operation_id": "op-synthetic-001",
+        "source": {
+          "id": "synthetic-suite",
+          "run_id": "run-001",
+          "raw_evidence_ref": "artifact://synthetic/run-001.tap"
+        },
+        "process": {
+          "exit_code": 0,
+          "duration_ms": 12.5,
+          "interrupted": false
+        },
+        "streams": [
+          {
+            "name": "stdout",
+            "encoding": "utf8",
+            "data": "TAP version 13\nok 1 - addressable\n1..1\n# tests 1\n# pass 1\n# fail 0\n# skipped 0\n# duration_ms 12.5\n"
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "classification": "VALID",
+        "sufficiency": "NEEDS_RAW_EVIDENCE",
+        "valid": true
+      },
+      "id": "valid-needs-raw-evidence",
+      "packet": {
+        "decision_evidence": {
+          "counts": {
+            "passed": 0,
+            "failed": 1,
+            "skipped": 0,
+            "total": 1
+          },
+          "disposition": "NEEDS_RAW_EVIDENCE",
+          "failures": [
+            {
+              "identity": "incomplete",
+              "header": {
+                "category": "failed_test",
+                "line": 2,
+                "sha256": "sha256:4d0e04d8857550bd5877c17a99149acd0b26514e488fce626b988317aa72ac32",
+                "stream": "stdout",
+                "text": "not ok 1 - incomplete"
+              },
+              "details": [
+                {
+                  "category": "failure_message",
+                  "line": 3,
+                  "sha256": "sha256:a9d490027eeceb7c3f82d7dce9278f1d449f13f0d5f7a1cf3c21e2117404ee89",
+                  "stream": "stdout",
+                  "text": "  message: cut off"
+                }
+              ]
+            }
+          ],
+          "fatal_errors": [],
+          "process": {
+            "duration_ms": 12.5,
+            "exit_code": 1,
+            "interrupted": true
+          },
+          "reason_codes": [
+            "INTERRUPTED_OUTPUT"
+          ],
+          "source": {
+            "id": "synthetic-suite",
+            "run_id": "run-001"
+          },
+          "status": "failed",
+          "timeouts": [],
+          "unclassified_evidence": [],
+          "warnings": []
+        },
+        "operation_id": "op-synthetic-001",
+        "protocol_version": "opsle.context-firewall.evidence-packet/v1",
+        "receipt": {
+          "configuration": {
+            "identity": "sha256:0614f60cadb064fb8af6215cf804498049d57bea091b77157a4edde84cb00e2a",
+            "max_output_bytes": null,
+            "policy_revision": "tap-subset-policy/v1"
+          },
+          "input_hash": "sha256:95e8762ca9ecab63a1e861b6922a93225b3078279824a9d9d0b5ebe5b31adf39",
+          "measurements": {
+            "original_bytes": 55,
+            "original_event_count": 3,
+            "reduced_bytes": 2203,
+            "retained_evidence_count": 2,
+            "suppressed_evidence_count": 1
+          },
+          "payload_limit": {
+            "affected": false,
+            "honored": true,
+            "requested_bytes": null
+          },
+          "raw_evidence": {
+            "destroyed_by_reducer": false,
+            "escalation_available": true,
+            "escalation_required": true,
+            "reference": "artifact://synthetic/run-001.tap",
+            "source_evidence_disposition": "CALLER_REFERENCE_SUPPLIED",
+            "suppressed_from_model_context": true
+          },
+          "receipt_version": 1,
+          "reducer": {
+            "name": "@opsle/context-firewall/test-output",
+            "version": "0.2.0"
+          },
+          "reduction_complete": false,
+          "retained": {
+            "categories": [
+              "aggregate_counts",
+              "failed_test",
+              "failure_message",
+              "process_status",
+              "run_verdict",
+              "stream_provenance"
+            ],
+            "event_count": 2
+          },
+          "semantic_payload_hash": "sha256:1966d17b65518bef4547428e166d6fdea14ae5365bdb8a6221356d3c61744368",
+          "source": {
+            "id": "synthetic-suite",
+            "protocol_version": "opsle.context-firewall.test-run-input/v1",
+            "run_id": "run-001",
+            "streams": [
+              {
+                "byte_count": 55,
+                "name": "stdout"
+              }
+            ]
+          },
+          "suppressed": {
+            "categories": {
+              "structure": 1
+            },
+            "event_count": 1
+          },
+          "unclassified_evidence_present": false
+        }
+      },
+      "producer_fixture": "process/interrupted-truncated",
+      "source_input": {
+        "protocol_version": "opsle.context-firewall.test-run-input/v1",
+        "operation_id": "op-synthetic-001",
+        "source": {
+          "id": "synthetic-suite",
+          "run_id": "run-001",
+          "raw_evidence_ref": "artifact://synthetic/run-001.tap"
+        },
+        "process": {
+          "exit_code": 1,
+          "duration_ms": 12.5,
+          "interrupted": true
+        },
+        "streams": [
+          {
+            "name": "stdout",
+            "encoding": "utf8",
+            "data": "TAP version 13\nnot ok 1 - incomplete\n  message: cut off"
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "classification": "VALID",
+        "sufficiency": "NEEDS_RAW_EVIDENCE",
+        "valid": true
+      },
+      "id": "ambiguous-evidence-escalation",
+      "packet": {
+        "decision_evidence": {
+          "counts": {
+            "passed": 0,
+            "failed": 0,
+            "skipped": 0,
+            "total": 0
+          },
+          "disposition": "NEEDS_RAW_EVIDENCE",
+          "failures": [],
+          "fatal_errors": [],
+          "process": {
+            "duration_ms": 12.5,
+            "exit_code": 0,
+            "interrupted": false
+          },
+          "reason_codes": [
+            "UNCLASSIFIED_EVIDENCE"
+          ],
+          "source": {
+            "id": "synthetic-suite",
+            "run_id": "run-001"
+          },
+          "status": "indeterminate",
+          "timeouts": [],
+          "unclassified_evidence": [
+            {
+              "category": "unclassified",
+              "line": 1,
+              "sha256": "sha256:e041a8541dcc2dd3290e5d85cc2f200c385eb02552a5e13a613e73658e398e90",
+              "stream": "stdout",
+              "text": "this is not TAP"
+            },
+            {
+              "category": "unclassified",
+              "line": 2,
+              "sha256": "sha256:c2a0912d4ebfeb355970b53735b6431a7cfc83bc2e674854760dd2e0d24a5e44",
+              "stream": "stdout",
+              "text": "not okay maybe FAIL"
+            }
+          ],
+          "warnings": []
+        },
+        "operation_id": "op-synthetic-001",
+        "protocol_version": "opsle.context-firewall.evidence-packet/v1",
+        "receipt": {
+          "configuration": {
+            "identity": "sha256:0614f60cadb064fb8af6215cf804498049d57bea091b77157a4edde84cb00e2a",
+            "max_output_bytes": null,
+            "policy_revision": "tap-subset-policy/v1"
+          },
+          "input_hash": "sha256:0b83fa88bc0a2593f2fded10cdfc09ad05f3cbbcad382872ab18ed1e8ea7f4a4",
+          "measurements": {
+            "original_bytes": 36,
+            "original_event_count": 2,
+            "reduced_bytes": 2130,
+            "retained_evidence_count": 2,
+            "suppressed_evidence_count": 0
+          },
+          "payload_limit": {
+            "affected": false,
+            "honored": true,
+            "requested_bytes": null
+          },
+          "raw_evidence": {
+            "destroyed_by_reducer": false,
+            "escalation_available": true,
+            "escalation_required": true,
+            "reference": "artifact://synthetic/run-001.tap",
+            "source_evidence_disposition": "CALLER_REFERENCE_SUPPLIED",
+            "suppressed_from_model_context": false
+          },
+          "receipt_version": 1,
+          "reducer": {
+            "name": "@opsle/context-firewall/test-output",
+            "version": "0.2.0"
+          },
+          "reduction_complete": false,
+          "retained": {
+            "categories": [
+              "aggregate_counts",
+              "process_status",
+              "run_verdict",
+              "stream_provenance",
+              "unclassified"
+            ],
+            "event_count": 2
+          },
+          "semantic_payload_hash": "sha256:bf4b58442ea401cf263c39f723953c92168231c0ca89673b96f72ce782ebcddf",
+          "source": {
+            "id": "synthetic-suite",
+            "protocol_version": "opsle.context-firewall.test-run-input/v1",
+            "run_id": "run-001",
+            "streams": [
+              {
+                "byte_count": 36,
+                "name": "stdout"
+              }
+            ]
+          },
+          "suppressed": {
+            "categories": {},
+            "event_count": 0
+          },
+          "unclassified_evidence_present": true
+        }
+      },
+      "producer_fixture": "edge/malformed-output",
+      "source_input": {
+        "protocol_version": "opsle.context-firewall.test-run-input/v1",
+        "operation_id": "op-synthetic-001",
+        "source": {
+          "id": "synthetic-suite",
+          "run_id": "run-001",
+          "raw_evidence_ref": "artifact://synthetic/run-001.tap"
+        },
+        "process": {
+          "exit_code": 0,
+          "duration_ms": 12.5,
+          "interrupted": false
+        },
+        "streams": [
+          {
+            "name": "stdout",
+            "encoding": "utf8",
+            "data": "this is not TAP\nnot okay maybe FAIL\n"
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "classification": "VALID",
+        "sufficiency": "NEEDS_RAW_EVIDENCE",
+        "valid": true
+      },
+      "id": "ceiling-triggered-escalation",
+      "packet": {
+        "decision_evidence": {
+          "counts": {
+            "passed": 0,
+            "failed": 1,
+            "skipped": 0,
+            "total": 1
+          },
+          "disposition": "NEEDS_RAW_EVIDENCE",
+          "failures": [
+            {
+              "identity": "oversized-critical"
+            }
+          ],
+          "fatal_errors": [],
+          "process": {
+            "duration_ms": 12.5,
+            "exit_code": 1,
+            "interrupted": false
+          },
+          "reason_codes": [
+            "PAYLOAD_LIMIT_CRITICAL_EVIDENCE_EXCEEDED"
+          ],
+          "source": {
+            "id": "synthetic-suite",
+            "run_id": "run-001"
+          },
+          "status": "failed",
+          "timeouts": [],
+          "unclassified_evidence": [],
+          "warnings": []
+        },
+        "operation_id": "op-synthetic-001",
+        "protocol_version": "opsle.context-firewall.evidence-packet/v1",
+        "receipt": {
+          "configuration": {
+            "identity": "sha256:fac3bbe1a598e2699744a561adbc0b6ded1df9604e1d7977920037ea68997423",
+            "max_output_bytes": 3500,
+            "policy_revision": "tap-subset-policy/v1"
+          },
+          "input_hash": "sha256:5c702b7f86610b695562ce075812bb2415f9d9eba933749d17972fc524ed105a",
+          "measurements": {
+            "original_bytes": 32121,
+            "original_event_count": 9,
+            "reduced_bytes": 1926,
+            "retained_evidence_count": 0,
+            "suppressed_evidence_count": 9
+          },
+          "payload_limit": {
+            "affected": true,
+            "honored": true,
+            "requested_bytes": 3500
+          },
+          "raw_evidence": {
+            "destroyed_by_reducer": false,
+            "escalation_available": true,
+            "escalation_required": true,
+            "reference": "artifact://synthetic/run-001.tap",
+            "source_evidence_disposition": "CALLER_REFERENCE_SUPPLIED",
+            "suppressed_from_model_context": true
+          },
+          "receipt_version": 1,
+          "reducer": {
+            "name": "@opsle/context-firewall/test-output",
+            "version": "0.2.0"
+          },
+          "reduction_complete": false,
+          "retained": {
+            "categories": [
+              "aggregate_counts",
+              "process_status",
+              "run_verdict",
+              "stream_provenance"
+            ],
+            "event_count": 0
+          },
+          "semantic_payload_hash": "sha256:b71cc862f79684b18a6b8996b404e61c602224c64fb1230ca5e97c89f957b4dd",
+          "source": {
+            "id": "synthetic-suite",
+            "protocol_version": "opsle.context-firewall.test-run-input/v1",
+            "run_id": "run-001",
+            "streams": [
+              {
+                "byte_count": 32121,
+                "name": "stdout"
+              }
+            ]
+          },
+          "suppressed": {
+            "categories": {
+              "aggregate_source": 4,
+              "duration_source": 1,
+              "failed_test": 1,
+              "failure_message": 1,
+              "structure": 2
+            },
+            "event_count": 9
+          },
+          "unclassified_evidence_present": false
+        }
+      },
+      "producer_fixture": "payload/critical-too-large",
+      "source_input": {
+        "protocol_version": "opsle.context-firewall.test-run-input/v1",
+        "operation_id": "op-synthetic-001",
+        "source": {
+          "id": "synthetic-suite",
+          "run_id": "run-001",
+          "raw_evidence_ref": "artifact://synthetic/run-001.tap"
+        },
+        "process": {
+          "exit_code": 1,
+          "duration_ms": 12.5,
+          "interrupted": false
+        },
+        "streams": [
+          {
+            "name": "stdout",
+            "encoding": "utf8",
+            "data": "TAP version 13\nnot ok 1 - oversized-critical\n  message: criticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcriticalcritical\n1..1\n# tests 1\n# pass 0\n# fail 1\n# skipped 0\n# duration_ms 12.5\n"
+          }
+        ]
+      }
+    },
+    {
+      "expected": {
+        "classification": "VALID",
+        "sufficiency": "SUFFICIENT",
+        "valid": true
+      },
+      "id": "exact-payload-boundary",
+      "packet": {
+        "decision_evidence": {
+          "counts": {
+            "passed": 1500,
+            "failed": 0,
+            "skipped": 0,
+            "total": 1500
+          },
+          "disposition": "SUFFICIENT",
+          "failures": [],
+          "fatal_errors": [],
+          "process": {
+            "duration_ms": 12.5,
+            "exit_code": 0,
+            "interrupted": false
+          },
+          "reason_codes": [],
+          "source": {
+            "id": "synthetic-suite",
+            "run_id": "run-001"
+          },
+          "status": "passed",
+          "timeouts": [],
+          "unclassified_evidence": [],
+          "warnings": []
+        },
+        "operation_id": "op-synthetic-001",
+        "protocol_version": "opsle.context-firewall.evidence-packet/v1",
+        "receipt": {
+          "configuration": {
+            "identity": "sha256:8e3f0537826d358aa26f585f336fdd011fdd8d086787b74f6f8a6e3f83aae534",
+            "max_output_bytes": 1846,
+            "policy_revision": "tap-subset-policy/v1"
+          },
+          "input_hash": "sha256:82ea05bab3fc9551830551372723ab484c5893f93b9ee88bbfaf9a1e9cf42abc",
+          "measurements": {
+            "original_bytes": 28981,
+            "original_event_count": 1507,
+            "reduced_bytes": 1846,
+            "retained_evidence_count": 0,
+            "suppressed_evidence_count": 1507
+          },
+          "payload_limit": {
+            "affected": false,
+            "honored": true,
+            "requested_bytes": 1846
+          },
+          "raw_evidence": {
+            "destroyed_by_reducer": false,
+            "escalation_available": true,
+            "escalation_required": false,
+            "reference": "artifact://synthetic/run-001.tap",
+            "source_evidence_disposition": "CALLER_REFERENCE_SUPPLIED",
+            "suppressed_from_model_context": true
+          },
+          "receipt_version": 1,
+          "reducer": {
+            "name": "@opsle/context-firewall/test-output",
+            "version": "0.2.0"
+          },
+          "reduction_complete": true,
+          "retained": {
+            "categories": [
+              "aggregate_counts",
+              "process_status",
+              "run_verdict",
+              "stream_provenance"
+            ],
+            "event_count": 0
+          },
+          "semantic_payload_hash": "sha256:d99849b21430365b8b3aefd974d26d625092874054c8c09d1eea69e84e9a4e49",
+          "source": {
+            "id": "synthetic-suite",
+            "protocol_version": "opsle.context-firewall.test-run-input/v1",
+            "run_id": "run-001",
+            "streams": [
+              {
+                "byte_count": 28981,
+                "name": "stdout"
+              }
+            ]
+          },
+          "suppressed": {
+            "categories": {
+              "aggregate_source": 4,
+              "duration_source": 1,
+              "structure": 2,
+              "successful_test": 1500
+            },
+            "event_count": 1507
+          },
+          "unclassified_evidence_present": false
+        }
+      },
+      "producer_fixture": "payload/exact-boundary",
+      "source_input": {
+        "protocol_version": "opsle.context-firewall.test-run-input/v1",
+        "operation_id": "op-synthetic-001",
+        "source": {
+          "id": "synthetic-suite",
+          "run_id": "run-001",
+          "raw_evidence_ref": "artifact://synthetic/run-001.tap"
+        },
+        "process": {
+          "exit_code": 0,
+          "duration_ms": 12.5,
+          "interrupted": false
+        },
+        "streams": [
+          {
+            "name": "stdout",
+            "encoding": "utf8",
+            "data": "TAP version 13\nok 1 - case-0001\nok 2 - case-0002\nok 3 - case-0003\nok 4 - case-0004\nok 5 - case-0005\nok 6 - case-0006\nok 7 - case-0007\nok 8 - case-0008\nok 9 - case-0009\nok 10 - case-0010\nok 11 - case-0011\nok 12 - case-0012\nok 13 - case-0013\nok 14 - case-0014\nok 15 - case-0015\nok 16 - case-0016\nok 17 - case-0017\nok 18 - case-0018\nok 19 - case-0019\nok 20 - case-0020\nok 21 - case-0021\nok 22 - case-0022\nok 23 - case-0023\nok 24 - case-0024\nok 25 - case-0025\nok 26 - case-0026\nok 27 - case-0027\nok 28 - case-0028\nok 29 - case-0029\nok 30 - case-0030\nok 31 - case-0031\nok 32 - case-0032\nok 33 - case-0033\nok 34 - case-0034\nok 35 - case-0035\nok 36 - case-0036\nok 37 - case-0037\nok 38 - case-0038\nok 39 - case-0039\nok 40 - case-0040\nok 41 - case-0041\nok 42 - case-0042\nok 43 - case-0043\nok 44 - case-0044\nok 45 - case-0045\nok 46 - case-0046\nok 47 - case-0047\nok 48 - case-0048\nok 49 - case-0049\nok 50 - case-0050\nok 51 - case-0051\nok 52 - case-0052\nok 53 - case-0053\nok 54 - case-0054\nok 55 - case-0055\nok 56 - case-0056\nok 57 - case-0057\nok 58 - case-0058\nok 59 - case-0059\nok 60 - case-0060\nok 61 - case-0061\nok 62 - case-0062\nok 63 - case-0063\nok 64 - case-0064\nok 65 - case-0065\nok 66 - case-0066\nok 67 - case-0067\nok 68 - case-0068\nok 69 - case-0069\nok 70 - case-0070\nok 71 - case-0071\nok 72 - case-0072\nok 73 - case-0073\nok 74 - case-0074\nok 75 - case-0075\nok 76 - case-0076\nok 77 - case-0077\nok 78 - case-0078\nok 79 - case-0079\nok 80 - case-0080\nok 81 - case-0081\nok 82 - case-0082\nok 83 - case-0083\nok 84 - case-0084\nok 85 - case-0085\nok 86 - case-0086\nok 87 - case-0087\nok 88 - case-0088\nok 89 - case-0089\nok 90 - case-0090\nok 91 - case-0091\nok 92 - case-0092\nok 93 - case-0093\nok 94 - case-0094\nok 95 - case-0095\nok 96 - case-0096\nok 97 - case-0097\nok 98 - case-0098\nok 99 - case-0099\nok 100 - case-0100\nok 101 - case-0101\nok 102 - case-0102\nok 103 - case-0103\nok 104 - case-0104\nok 105 - case-0105\nok 106 - case-0106\nok 107 - case-0107\nok 108 - case-0108\nok 109 - case-0109\nok 110 - case-0110\nok 111 - case-0111\nok 112 - case-0112\nok 113 - case-0113\nok 114 - case-0114\nok 115 - case-0115\nok 116 - case-0116\nok 117 - case-0117\nok 118 - case-0118\nok 119 - case-0119\nok 120 - case-0120\nok 121 - case-0121\nok 122 - case-0122\nok 123 - case-0123\nok 124 - case-0124\nok 125 - case-0125\nok 126 - case-0126\nok 127 - case-0127\nok 128 - case-0128\nok 129 - case-0129\nok 130 - case-0130\nok 131 - case-0131\nok 132 - case-0132\nok 133 - case-0133\nok 134 - case-0134\nok 135 - case-0135\nok 136 - case-0136\nok 137 - case-0137\nok 138 - case-0138\nok 139 - case-0139\nok 140 - case-0140\nok 141 - case-0141\nok 142 - case-0142\nok 143 - case-0143\nok 144 - case-0144\nok 145 - case-0145\nok 146 - case-0146\nok 147 - case-0147\nok 148 - case-0148\nok 149 - case-0149\nok 150 - case-0150\nok 151 - case-0151\nok 152 - case-0152\nok 153 - case-0153\nok 154 - case-0154\nok 155 - case-0155\nok 156 - case-0156\nok 157 - case-0157\nok 158 - case-0158\nok 159 - case-0159\nok 160 - case-0160\nok 161 - case-0161\nok 162 - case-0162\nok 163 - case-0163\nok 164 - case-0164\nok 165 - case-0165\nok 166 - case-0166\nok 167 - case-0167\nok 168 - case-0168\nok 169 - case-0169\nok 170 - case-0170\nok 171 - case-0171\nok 172 - case-0172\nok 173 - case-0173\nok 174 - case-0174\nok 175 - case-0175\nok 176 - case-0176\nok 177 - case-0177\nok 178 - case-0178\nok 179 - case-0179\nok 180 - case-0180\nok 181 - case-0181\nok 182 - case-0182\nok 183 - case-0183\nok 184 - case-0184\nok 185 - case-0185\nok 186 - case-0186\nok 187 - case-0187\nok 188 - case-0188\nok 189 - case-0189\nok 190 - case-0190\nok 191 - case-0191\nok 192 - case-0192\nok 193 - case-0193\nok 194 - case-0194\nok 195 - case-0195\nok 196 - case-0196\nok 197 - case-0197\nok 198 - case-0198\nok 199 - case-0199\nok 200 - case-0200\nok 201 - case-0201\nok 202 - case-0202\nok 203 - case-0203\nok 204 - case-0204\nok 205 - case-0205\nok 206 - case-0206\nok 207 - case-0207\nok 208 - case-0208\nok 209 - case-0209\nok 210 - case-0210\nok 211 - case-0211\nok 212 - case-0212\nok 213 - case-0213\nok 214 - case-0214\nok 215 - case-0215\nok 216 - case-0216\nok 217 - case-0217\nok 218 - case-0218\nok 219 - case-0219\nok 220 - case-0220\nok 221 - case-0221\nok 222 - case-0222\nok 223 - case-0223\nok 224 - case-0224\nok 225 - case-0225\nok 226 - case-0226\nok 227 - case-0227\nok 228 - case-0228\nok 229 - case-0229\nok 230 - case-0230\nok 231 - case-0231\nok 232 - case-0232\nok 233 - case-0233\nok 234 - case-0234\nok 235 - case-0235\nok 236 - case-0236\nok 237 - case-0237\nok 238 - case-0238\nok 239 - case-0239\nok 240 - case-0240\nok 241 - case-0241\nok 242 - case-0242\nok 243 - case-0243\nok 244 - case-0244\nok 245 - case-0245\nok 246 - case-0246\nok 247 - case-0247\nok 248 - case-0248\nok 249 - case-0249\nok 250 - case-0250\nok 251 - case-0251\nok 252 - case-0252\nok 253 - case-0253\nok 254 - case-0254\nok 255 - case-0255\nok 256 - case-0256\nok 257 - case-0257\nok 258 - case-0258\nok 259 - case-0259\nok 260 - case-0260\nok 261 - case-0261\nok 262 - case-0262\nok 263 - case-0263\nok 264 - case-0264\nok 265 - case-0265\nok 266 - case-0266\nok 267 - case-0267\nok 268 - case-0268\nok 269 - case-0269\nok 270 - case-0270\nok 271 - case-0271\nok 272 - case-0272\nok 273 - case-0273\nok 274 - case-0274\nok 275 - case-0275\nok 276 - case-0276\nok 277 - case-0277\nok 278 - case-0278\nok 279 - case-0279\nok 280 - case-0280\nok 281 - case-0281\nok 282 - case-0282\nok 283 - case-0283\nok 284 - case-0284\nok 285 - case-0285\nok 286 - case-0286\nok 287 - case-0287\nok 288 - case-0288\nok 289 - case-0289\nok 290 - case-0290\nok 291 - case-0291\nok 292 - case-0292\nok 293 - case-0293\nok 294 - case-0294\nok 295 - case-0295\nok 296 - case-0296\nok 297 - case-0297\nok 298 - case-0298\nok 299 - case-0299\nok 300 - case-0300\nok 301 - case-0301\nok 302 - case-0302\nok 303 - case-0303\nok 304 - case-0304\nok 305 - case-0305\nok 306 - case-0306\nok 307 - case-0307\nok 308 - case-0308\nok 309 - case-0309\nok 310 - case-0310\nok 311 - case-0311\nok 312 - case-0312\nok 313 - case-0313\nok 314 - case-0314\nok 315 - case-0315\nok 316 - case-0316\nok 317 - case-0317\nok 318 - case-0318\nok 319 - case-0319\nok 320 - case-0320\nok 321 - case-0321\nok 322 - case-0322\nok 323 - case-0323\nok 324 - case-0324\nok 325 - case-0325\nok 326 - case-0326\nok 327 - case-0327\nok 328 - case-0328\nok 329 - case-0329\nok 330 - case-0330\nok 331 - case-0331\nok 332 - case-0332\nok 333 - case-0333\nok 334 - case-0334\nok 335 - case-0335\nok 336 - case-0336\nok 337 - case-0337\nok 338 - case-0338\nok 339 - case-0339\nok 340 - case-0340\nok 341 - case-0341\nok 342 - case-0342\nok 343 - case-0343\nok 344 - case-0344\nok 345 - case-0345\nok 346 - case-0346\nok 347 - case-0347\nok 348 - case-0348\nok 349 - case-0349\nok 350 - case-0350\nok 351 - case-0351\nok 352 - case-0352\nok 353 - case-0353\nok 354 - case-0354\nok 355 - case-0355\nok 356 - case-0356\nok 357 - case-0357\nok 358 - case-0358\nok 359 - case-0359\nok 360 - case-0360\nok 361 - case-0361\nok 362 - case-0362\nok 363 - case-0363\nok 364 - case-0364\nok 365 - case-0365\nok 366 - case-0366\nok 367 - case-0367\nok 368 - case-0368\nok 369 - case-0369\nok 370 - case-0370\nok 371 - case-0371\nok 372 - case-0372\nok 373 - case-0373\nok 374 - case-0374\nok 375 - case-0375\nok 376 - case-0376\nok 377 - case-0377\nok 378 - case-0378\nok 379 - case-0379\nok 380 - case-0380\nok 381 - case-0381\nok 382 - case-0382\nok 383 - case-0383\nok 384 - case-0384\nok 385 - case-0385\nok 386 - case-0386\nok 387 - case-0387\nok 388 - case-0388\nok 389 - case-0389\nok 390 - case-0390\nok 391 - case-0391\nok 392 - case-0392\nok 393 - case-0393\nok 394 - case-0394\nok 395 - case-0395\nok 396 - case-0396\nok 397 - case-0397\nok 398 - case-0398\nok 399 - case-0399\nok 400 - case-0400\nok 401 - case-0401\nok 402 - case-0402\nok 403 - case-0403\nok 404 - case-0404\nok 405 - case-0405\nok 406 - case-0406\nok 407 - case-0407\nok 408 - case-0408\nok 409 - case-0409\nok 410 - case-0410\nok 411 - case-0411\nok 412 - case-0412\nok 413 - case-0413\nok 414 - case-0414\nok 415 - case-0415\nok 416 - case-0416\nok 417 - case-0417\nok 418 - case-0418\nok 419 - case-0419\nok 420 - case-0420\nok 421 - case-0421\nok 422 - case-0422\nok 423 - case-0423\nok 424 - case-0424\nok 425 - case-0425\nok 426 - case-0426\nok 427 - case-0427\nok 428 - case-0428\nok 429 - case-0429\nok 430 - case-0430\nok 431 - case-0431\nok 432 - case-0432\nok 433 - case-0433\nok 434 - case-0434\nok 435 - case-0435\nok 436 - case-0436\nok 437 - case-0437\nok 438 - case-0438\nok 439 - case-0439\nok 440 - case-0440\nok 441 - case-0441\nok 442 - case-0442\nok 443 - case-0443\nok 444 - case-0444\nok 445 - case-0445\nok 446 - case-0446\nok 447 - case-0447\nok 448 - case-0448\nok 449 - case-0449\nok 450 - case-0450\nok 451 - case-0451\nok 452 - case-0452\nok 453 - case-0453\nok 454 - case-0454\nok 455 - case-0455\nok 456 - case-0456\nok 457 - case-0457\nok 458 - case-0458\nok 459 - case-0459\nok 460 - case-0460\nok 461 - case-0461\nok 462 - case-0462\nok 463 - case-0463\nok 464 - case-0464\nok 465 - case-0465\nok 466 - case-0466\nok 467 - case-0467\nok 468 - case-0468\nok 469 - case-0469\nok 470 - case-0470\nok 471 - case-0471\nok 472 - case-0472\nok 473 - case-0473\nok 474 - case-0474\nok 475 - case-0475\nok 476 - case-0476\nok 477 - case-0477\nok 478 - case-0478\nok 479 - case-0479\nok 480 - case-0480\nok 481 - case-0481\nok 482 - case-0482\nok 483 - case-0483\nok 484 - case-0484\nok 485 - case-0485\nok 486 - case-0486\nok 487 - case-0487\nok 488 - case-0488\nok 489 - case-0489\nok 490 - case-0490\nok 491 - case-0491\nok 492 - case-0492\nok 493 - case-0493\nok 494 - case-0494\nok 495 - case-0495\nok 496 - case-0496\nok 497 - case-0497\nok 498 - case-0498\nok 499 - case-0499\nok 500 - case-0500\nok 501 - case-0501\nok 502 - case-0502\nok 503 - case-0503\nok 504 - case-0504\nok 505 - case-0505\nok 506 - case-0506\nok 507 - case-0507\nok 508 - case-0508\nok 509 - case-0509\nok 510 - case-0510\nok 511 - case-0511\nok 512 - case-0512\nok 513 - case-0513\nok 514 - case-0514\nok 515 - case-0515\nok 516 - case-0516\nok 517 - case-0517\nok 518 - case-0518\nok 519 - case-0519\nok 520 - case-0520\nok 521 - case-0521\nok 522 - case-0522\nok 523 - case-0523\nok 524 - case-0524\nok 525 - case-0525\nok 526 - case-0526\nok 527 - case-0527\nok 528 - case-0528\nok 529 - case-0529\nok 530 - case-0530\nok 531 - case-0531\nok 532 - case-0532\nok 533 - case-0533\nok 534 - case-0534\nok 535 - case-0535\nok 536 - case-0536\nok 537 - case-0537\nok 538 - case-0538\nok 539 - case-0539\nok 540 - case-0540\nok 541 - case-0541\nok 542 - case-0542\nok 543 - case-0543\nok 544 - case-0544\nok 545 - case-0545\nok 546 - case-0546\nok 547 - case-0547\nok 548 - case-0548\nok 549 - case-0549\nok 550 - case-0550\nok 551 - case-0551\nok 552 - case-0552\nok 553 - case-0553\nok 554 - case-0554\nok 555 - case-0555\nok 556 - case-0556\nok 557 - case-0557\nok 558 - case-0558\nok 559 - case-0559\nok 560 - case-0560\nok 561 - case-0561\nok 562 - case-0562\nok 563 - case-0563\nok 564 - case-0564\nok 565 - case-0565\nok 566 - case-0566\nok 567 - case-0567\nok 568 - case-0568\nok 569 - case-0569\nok 570 - case-0570\nok 571 - case-0571\nok 572 - case-0572\nok 573 - case-0573\nok 574 - case-0574\nok 575 - case-0575\nok 576 - case-0576\nok 577 - case-0577\nok 578 - case-0578\nok 579 - case-0579\nok 580 - case-0580\nok 581 - case-0581\nok 582 - case-0582\nok 583 - case-0583\nok 584 - case-0584\nok 585 - case-0585\nok 586 - case-0586\nok 587 - case-0587\nok 588 - case-0588\nok 589 - case-0589\nok 590 - case-0590\nok 591 - case-0591\nok 592 - case-0592\nok 593 - case-0593\nok 594 - case-0594\nok 595 - case-0595\nok 596 - case-0596\nok 597 - case-0597\nok 598 - case-0598\nok 599 - case-0599\nok 600 - case-0600\nok 601 - case-0601\nok 602 - case-0602\nok 603 - case-0603\nok 604 - case-0604\nok 605 - case-0605\nok 606 - case-0606\nok 607 - case-0607\nok 608 - case-0608\nok 609 - case-0609\nok 610 - case-0610\nok 611 - case-0611\nok 612 - case-0612\nok 613 - case-0613\nok 614 - case-0614\nok 615 - case-0615\nok 616 - case-0616\nok 617 - case-0617\nok 618 - case-0618\nok 619 - case-0619\nok 620 - case-0620\nok 621 - case-0621\nok 622 - case-0622\nok 623 - case-0623\nok 624 - case-0624\nok 625 - case-0625\nok 626 - case-0626\nok 627 - case-0627\nok 628 - case-0628\nok 629 - case-0629\nok 630 - case-0630\nok 631 - case-0631\nok 632 - case-0632\nok 633 - case-0633\nok 634 - case-0634\nok 635 - case-0635\nok 636 - case-0636\nok 637 - case-0637\nok 638 - case-0638\nok 639 - case-0639\nok 640 - case-0640\nok 641 - case-0641\nok 642 - case-0642\nok 643 - case-0643\nok 644 - case-0644\nok 645 - case-0645\nok 646 - case-0646\nok 647 - case-0647\nok 648 - case-0648\nok 649 - case-0649\nok 650 - case-0650\nok 651 - case-0651\nok 652 - case-0652\nok 653 - case-0653\nok 654 - case-0654\nok 655 - case-0655\nok 656 - case-0656\nok 657 - case-0657\nok 658 - case-0658\nok 659 - case-0659\nok 660 - case-0660\nok 661 - case-0661\nok 662 - case-0662\nok 663 - case-0663\nok 664 - case-0664\nok 665 - case-0665\nok 666 - case-0666\nok 667 - case-0667\nok 668 - case-0668\nok 669 - case-0669\nok 670 - case-0670\nok 671 - case-0671\nok 672 - case-0672\nok 673 - case-0673\nok 674 - case-0674\nok 675 - case-0675\nok 676 - case-0676\nok 677 - case-0677\nok 678 - case-0678\nok 679 - case-0679\nok 680 - case-0680\nok 681 - case-0681\nok 682 - case-0682\nok 683 - case-0683\nok 684 - case-0684\nok 685 - case-0685\nok 686 - case-0686\nok 687 - case-0687\nok 688 - case-0688\nok 689 - case-0689\nok 690 - case-0690\nok 691 - case-0691\nok 692 - case-0692\nok 693 - case-0693\nok 694 - case-0694\nok 695 - case-0695\nok 696 - case-0696\nok 697 - case-0697\nok 698 - case-0698\nok 699 - case-0699\nok 700 - case-0700\nok 701 - case-0701\nok 702 - case-0702\nok 703 - case-0703\nok 704 - case-0704\nok 705 - case-0705\nok 706 - case-0706\nok 707 - case-0707\nok 708 - case-0708\nok 709 - case-0709\nok 710 - case-0710\nok 711 - case-0711\nok 712 - case-0712\nok 713 - case-0713\nok 714 - case-0714\nok 715 - case-0715\nok 716 - case-0716\nok 717 - case-0717\nok 718 - case-0718\nok 719 - case-0719\nok 720 - case-0720\nok 721 - case-0721\nok 722 - case-0722\nok 723 - case-0723\nok 724 - case-0724\nok 725 - case-0725\nok 726 - case-0726\nok 727 - case-0727\nok 728 - case-0728\nok 729 - case-0729\nok 730 - case-0730\nok 731 - case-0731\nok 732 - case-0732\nok 733 - case-0733\nok 734 - case-0734\nok 735 - case-0735\nok 736 - case-0736\nok 737 - case-0737\nok 738 - case-0738\nok 739 - case-0739\nok 740 - case-0740\nok 741 - case-0741\nok 742 - case-0742\nok 743 - case-0743\nok 744 - case-0744\nok 745 - case-0745\nok 746 - case-0746\nok 747 - case-0747\nok 748 - case-0748\nok 749 - case-0749\nok 750 - case-0750\nok 751 - case-0751\nok 752 - case-0752\nok 753 - case-0753\nok 754 - case-0754\nok 755 - case-0755\nok 756 - case-0756\nok 757 - case-0757\nok 758 - case-0758\nok 759 - case-0759\nok 760 - case-0760\nok 761 - case-0761\nok 762 - case-0762\nok 763 - case-0763\nok 764 - case-0764\nok 765 - case-0765\nok 766 - case-0766\nok 767 - case-0767\nok 768 - case-0768\nok 769 - case-0769\nok 770 - case-0770\nok 771 - case-0771\nok 772 - case-0772\nok 773 - case-0773\nok 774 - case-0774\nok 775 - case-0775\nok 776 - case-0776\nok 777 - case-0777\nok 778 - case-0778\nok 779 - case-0779\nok 780 - case-0780\nok 781 - case-0781\nok 782 - case-0782\nok 783 - case-0783\nok 784 - case-0784\nok 785 - case-0785\nok 786 - case-0786\nok 787 - case-0787\nok 788 - case-0788\nok 789 - case-0789\nok 790 - case-0790\nok 791 - case-0791\nok 792 - case-0792\nok 793 - case-0793\nok 794 - case-0794\nok 795 - case-0795\nok 796 - case-0796\nok 797 - case-0797\nok 798 - case-0798\nok 799 - case-0799\nok 800 - case-0800\nok 801 - case-0801\nok 802 - case-0802\nok 803 - case-0803\nok 804 - case-0804\nok 805 - case-0805\nok 806 - case-0806\nok 807 - case-0807\nok 808 - case-0808\nok 809 - case-0809\nok 810 - case-0810\nok 811 - case-0811\nok 812 - case-0812\nok 813 - case-0813\nok 814 - case-0814\nok 815 - case-0815\nok 816 - case-0816\nok 817 - case-0817\nok 818 - case-0818\nok 819 - case-0819\nok 820 - case-0820\nok 821 - case-0821\nok 822 - case-0822\nok 823 - case-0823\nok 824 - case-0824\nok 825 - case-0825\nok 826 - case-0826\nok 827 - case-0827\nok 828 - case-0828\nok 829 - case-0829\nok 830 - case-0830\nok 831 - case-0831\nok 832 - case-0832\nok 833 - case-0833\nok 834 - case-0834\nok 835 - case-0835\nok 836 - case-0836\nok 837 - case-0837\nok 838 - case-0838\nok 839 - case-0839\nok 840 - case-0840\nok 841 - case-0841\nok 842 - case-0842\nok 843 - case-0843\nok 844 - case-0844\nok 845 - case-0845\nok 846 - case-0846\nok 847 - case-0847\nok 848 - case-0848\nok 849 - case-0849\nok 850 - case-0850\nok 851 - case-0851\nok 852 - case-0852\nok 853 - case-0853\nok 854 - case-0854\nok 855 - case-0855\nok 856 - case-0856\nok 857 - case-0857\nok 858 - case-0858\nok 859 - case-0859\nok 860 - case-0860\nok 861 - case-0861\nok 862 - case-0862\nok 863 - case-0863\nok 864 - case-0864\nok 865 - case-0865\nok 866 - case-0866\nok 867 - case-0867\nok 868 - case-0868\nok 869 - case-0869\nok 870 - case-0870\nok 871 - case-0871\nok 872 - case-0872\nok 873 - case-0873\nok 874 - case-0874\nok 875 - case-0875\nok 876 - case-0876\nok 877 - case-0877\nok 878 - case-0878\nok 879 - case-0879\nok 880 - case-0880\nok 881 - case-0881\nok 882 - case-0882\nok 883 - case-0883\nok 884 - case-0884\nok 885 - case-0885\nok 886 - case-0886\nok 887 - case-0887\nok 888 - case-0888\nok 889 - case-0889\nok 890 - case-0890\nok 891 - case-0891\nok 892 - case-0892\nok 893 - case-0893\nok 894 - case-0894\nok 895 - case-0895\nok 896 - case-0896\nok 897 - case-0897\nok 898 - case-0898\nok 899 - case-0899\nok 900 - case-0900\nok 901 - case-0901\nok 902 - case-0902\nok 903 - case-0903\nok 904 - case-0904\nok 905 - case-0905\nok 906 - case-0906\nok 907 - case-0907\nok 908 - case-0908\nok 909 - case-0909\nok 910 - case-0910\nok 911 - case-0911\nok 912 - case-0912\nok 913 - case-0913\nok 914 - case-0914\nok 915 - case-0915\nok 916 - case-0916\nok 917 - case-0917\nok 918 - case-0918\nok 919 - case-0919\nok 920 - case-0920\nok 921 - case-0921\nok 922 - case-0922\nok 923 - case-0923\nok 924 - case-0924\nok 925 - case-0925\nok 926 - case-0926\nok 927 - case-0927\nok 928 - case-0928\nok 929 - case-0929\nok 930 - case-0930\nok 931 - case-0931\nok 932 - case-0932\nok 933 - case-0933\nok 934 - case-0934\nok 935 - case-0935\nok 936 - case-0936\nok 937 - case-0937\nok 938 - case-0938\nok 939 - case-0939\nok 940 - case-0940\nok 941 - case-0941\nok 942 - case-0942\nok 943 - case-0943\nok 944 - case-0944\nok 945 - case-0945\nok 946 - case-0946\nok 947 - case-0947\nok 948 - case-0948\nok 949 - case-0949\nok 950 - case-0950\nok 951 - case-0951\nok 952 - case-0952\nok 953 - case-0953\nok 954 - case-0954\nok 955 - case-0955\nok 956 - case-0956\nok 957 - case-0957\nok 958 - case-0958\nok 959 - case-0959\nok 960 - case-0960\nok 961 - case-0961\nok 962 - case-0962\nok 963 - case-0963\nok 964 - case-0964\nok 965 - case-0965\nok 966 - case-0966\nok 967 - case-0967\nok 968 - case-0968\nok 969 - case-0969\nok 970 - case-0970\nok 971 - case-0971\nok 972 - case-0972\nok 973 - case-0973\nok 974 - case-0974\nok 975 - case-0975\nok 976 - case-0976\nok 977 - case-0977\nok 978 - case-0978\nok 979 - case-0979\nok 980 - case-0980\nok 981 - case-0981\nok 982 - case-0982\nok 983 - case-0983\nok 984 - case-0984\nok 985 - case-0985\nok 986 - case-0986\nok 987 - case-0987\nok 988 - case-0988\nok 989 - case-0989\nok 990 - case-0990\nok 991 - case-0991\nok 992 - case-0992\nok 993 - case-0993\nok 994 - case-0994\nok 995 - case-0995\nok 996 - case-0996\nok 997 - case-0997\nok 998 - case-0998\nok 999 - case-0999\nok 1000 - case-1000\nok 1001 - case-1001\nok 1002 - case-1002\nok 1003 - case-1003\nok 1004 - case-1004\nok 1005 - case-1005\nok 1006 - case-1006\nok 1007 - case-1007\nok 1008 - case-1008\nok 1009 - case-1009\nok 1010 - case-1010\nok 1011 - case-1011\nok 1012 - case-1012\nok 1013 - case-1013\nok 1014 - case-1014\nok 1015 - case-1015\nok 1016 - case-1016\nok 1017 - case-1017\nok 1018 - case-1018\nok 1019 - case-1019\nok 1020 - case-1020\nok 1021 - case-1021\nok 1022 - case-1022\nok 1023 - case-1023\nok 1024 - case-1024\nok 1025 - case-1025\nok 1026 - case-1026\nok 1027 - case-1027\nok 1028 - case-1028\nok 1029 - case-1029\nok 1030 - case-1030\nok 1031 - case-1031\nok 1032 - case-1032\nok 1033 - case-1033\nok 1034 - case-1034\nok 1035 - case-1035\nok 1036 - case-1036\nok 1037 - case-1037\nok 1038 - case-1038\nok 1039 - case-1039\nok 1040 - case-1040\nok 1041 - case-1041\nok 1042 - case-1042\nok 1043 - case-1043\nok 1044 - case-1044\nok 1045 - case-1045\nok 1046 - case-1046\nok 1047 - case-1047\nok 1048 - case-1048\nok 1049 - case-1049\nok 1050 - case-1050\nok 1051 - case-1051\nok 1052 - case-1052\nok 1053 - case-1053\nok 1054 - case-1054\nok 1055 - case-1055\nok 1056 - case-1056\nok 1057 - case-1057\nok 1058 - case-1058\nok 1059 - case-1059\nok 1060 - case-1060\nok 1061 - case-1061\nok 1062 - case-1062\nok 1063 - case-1063\nok 1064 - case-1064\nok 1065 - case-1065\nok 1066 - case-1066\nok 1067 - case-1067\nok 1068 - case-1068\nok 1069 - case-1069\nok 1070 - case-1070\nok 1071 - case-1071\nok 1072 - case-1072\nok 1073 - case-1073\nok 1074 - case-1074\nok 1075 - case-1075\nok 1076 - case-1076\nok 1077 - case-1077\nok 1078 - case-1078\nok 1079 - case-1079\nok 1080 - case-1080\nok 1081 - case-1081\nok 1082 - case-1082\nok 1083 - case-1083\nok 1084 - case-1084\nok 1085 - case-1085\nok 1086 - case-1086\nok 1087 - case-1087\nok 1088 - case-1088\nok 1089 - case-1089\nok 1090 - case-1090\nok 1091 - case-1091\nok 1092 - case-1092\nok 1093 - case-1093\nok 1094 - case-1094\nok 1095 - case-1095\nok 1096 - case-1096\nok 1097 - case-1097\nok 1098 - case-1098\nok 1099 - case-1099\nok 1100 - case-1100\nok 1101 - case-1101\nok 1102 - case-1102\nok 1103 - case-1103\nok 1104 - case-1104\nok 1105 - case-1105\nok 1106 - case-1106\nok 1107 - case-1107\nok 1108 - case-1108\nok 1109 - case-1109\nok 1110 - case-1110\nok 1111 - case-1111\nok 1112 - case-1112\nok 1113 - case-1113\nok 1114 - case-1114\nok 1115 - case-1115\nok 1116 - case-1116\nok 1117 - case-1117\nok 1118 - case-1118\nok 1119 - case-1119\nok 1120 - case-1120\nok 1121 - case-1121\nok 1122 - case-1122\nok 1123 - case-1123\nok 1124 - case-1124\nok 1125 - case-1125\nok 1126 - case-1126\nok 1127 - case-1127\nok 1128 - case-1128\nok 1129 - case-1129\nok 1130 - case-1130\nok 1131 - case-1131\nok 1132 - case-1132\nok 1133 - case-1133\nok 1134 - case-1134\nok 1135 - case-1135\nok 1136 - case-1136\nok 1137 - case-1137\nok 1138 - case-1138\nok 1139 - case-1139\nok 1140 - case-1140\nok 1141 - case-1141\nok 1142 - case-1142\nok 1143 - case-1143\nok 1144 - case-1144\nok 1145 - case-1145\nok 1146 - case-1146\nok 1147 - case-1147\nok 1148 - case-1148\nok 1149 - case-1149\nok 1150 - case-1150\nok 1151 - case-1151\nok 1152 - case-1152\nok 1153 - case-1153\nok 1154 - case-1154\nok 1155 - case-1155\nok 1156 - case-1156\nok 1157 - case-1157\nok 1158 - case-1158\nok 1159 - case-1159\nok 1160 - case-1160\nok 1161 - case-1161\nok 1162 - case-1162\nok 1163 - case-1163\nok 1164 - case-1164\nok 1165 - case-1165\nok 1166 - case-1166\nok 1167 - case-1167\nok 1168 - case-1168\nok 1169 - case-1169\nok 1170 - case-1170\nok 1171 - case-1171\nok 1172 - case-1172\nok 1173 - case-1173\nok 1174 - case-1174\nok 1175 - case-1175\nok 1176 - case-1176\nok 1177 - case-1177\nok 1178 - case-1178\nok 1179 - case-1179\nok 1180 - case-1180\nok 1181 - case-1181\nok 1182 - case-1182\nok 1183 - case-1183\nok 1184 - case-1184\nok 1185 - case-1185\nok 1186 - case-1186\nok 1187 - case-1187\nok 1188 - case-1188\nok 1189 - case-1189\nok 1190 - case-1190\nok 1191 - case-1191\nok 1192 - case-1192\nok 1193 - case-1193\nok 1194 - case-1194\nok 1195 - case-1195\nok 1196 - case-1196\nok 1197 - case-1197\nok 1198 - case-1198\nok 1199 - case-1199\nok 1200 - case-1200\nok 1201 - case-1201\nok 1202 - case-1202\nok 1203 - case-1203\nok 1204 - case-1204\nok 1205 - case-1205\nok 1206 - case-1206\nok 1207 - case-1207\nok 1208 - case-1208\nok 1209 - case-1209\nok 1210 - case-1210\nok 1211 - case-1211\nok 1212 - case-1212\nok 1213 - case-1213\nok 1214 - case-1214\nok 1215 - case-1215\nok 1216 - case-1216\nok 1217 - case-1217\nok 1218 - case-1218\nok 1219 - case-1219\nok 1220 - case-1220\nok 1221 - case-1221\nok 1222 - case-1222\nok 1223 - case-1223\nok 1224 - case-1224\nok 1225 - case-1225\nok 1226 - case-1226\nok 1227 - case-1227\nok 1228 - case-1228\nok 1229 - case-1229\nok 1230 - case-1230\nok 1231 - case-1231\nok 1232 - case-1232\nok 1233 - case-1233\nok 1234 - case-1234\nok 1235 - case-1235\nok 1236 - case-1236\nok 1237 - case-1237\nok 1238 - case-1238\nok 1239 - case-1239\nok 1240 - case-1240\nok 1241 - case-1241\nok 1242 - case-1242\nok 1243 - case-1243\nok 1244 - case-1244\nok 1245 - case-1245\nok 1246 - case-1246\nok 1247 - case-1247\nok 1248 - case-1248\nok 1249 - case-1249\nok 1250 - case-1250\nok 1251 - case-1251\nok 1252 - case-1252\nok 1253 - case-1253\nok 1254 - case-1254\nok 1255 - case-1255\nok 1256 - case-1256\nok 1257 - case-1257\nok 1258 - case-1258\nok 1259 - case-1259\nok 1260 - case-1260\nok 1261 - case-1261\nok 1262 - case-1262\nok 1263 - case-1263\nok 1264 - case-1264\nok 1265 - case-1265\nok 1266 - case-1266\nok 1267 - case-1267\nok 1268 - case-1268\nok 1269 - case-1269\nok 1270 - case-1270\nok 1271 - case-1271\nok 1272 - case-1272\nok 1273 - case-1273\nok 1274 - case-1274\nok 1275 - case-1275\nok 1276 - case-1276\nok 1277 - case-1277\nok 1278 - case-1278\nok 1279 - case-1279\nok 1280 - case-1280\nok 1281 - case-1281\nok 1282 - case-1282\nok 1283 - case-1283\nok 1284 - case-1284\nok 1285 - case-1285\nok 1286 - case-1286\nok 1287 - case-1287\nok 1288 - case-1288\nok 1289 - case-1289\nok 1290 - case-1290\nok 1291 - case-1291\nok 1292 - case-1292\nok 1293 - case-1293\nok 1294 - case-1294\nok 1295 - case-1295\nok 1296 - case-1296\nok 1297 - case-1297\nok 1298 - case-1298\nok 1299 - case-1299\nok 1300 - case-1300\nok 1301 - case-1301\nok 1302 - case-1302\nok 1303 - case-1303\nok 1304 - case-1304\nok 1305 - case-1305\nok 1306 - case-1306\nok 1307 - case-1307\nok 1308 - case-1308\nok 1309 - case-1309\nok 1310 - case-1310\nok 1311 - case-1311\nok 1312 - case-1312\nok 1313 - case-1313\nok 1314 - case-1314\nok 1315 - case-1315\nok 1316 - case-1316\nok 1317 - case-1317\nok 1318 - case-1318\nok 1319 - case-1319\nok 1320 - case-1320\nok 1321 - case-1321\nok 1322 - case-1322\nok 1323 - case-1323\nok 1324 - case-1324\nok 1325 - case-1325\nok 1326 - case-1326\nok 1327 - case-1327\nok 1328 - case-1328\nok 1329 - case-1329\nok 1330 - case-1330\nok 1331 - case-1331\nok 1332 - case-1332\nok 1333 - case-1333\nok 1334 - case-1334\nok 1335 - case-1335\nok 1336 - case-1336\nok 1337 - case-1337\nok 1338 - case-1338\nok 1339 - case-1339\nok 1340 - case-1340\nok 1341 - case-1341\nok 1342 - case-1342\nok 1343 - case-1343\nok 1344 - case-1344\nok 1345 - case-1345\nok 1346 - case-1346\nok 1347 - case-1347\nok 1348 - case-1348\nok 1349 - case-1349\nok 1350 - case-1350\nok 1351 - case-1351\nok 1352 - case-1352\nok 1353 - case-1353\nok 1354 - case-1354\nok 1355 - case-1355\nok 1356 - case-1356\nok 1357 - case-1357\nok 1358 - case-1358\nok 1359 - case-1359\nok 1360 - case-1360\nok 1361 - case-1361\nok 1362 - case-1362\nok 1363 - case-1363\nok 1364 - case-1364\nok 1365 - case-1365\nok 1366 - case-1366\nok 1367 - case-1367\nok 1368 - case-1368\nok 1369 - case-1369\nok 1370 - case-1370\nok 1371 - case-1371\nok 1372 - case-1372\nok 1373 - case-1373\nok 1374 - case-1374\nok 1375 - case-1375\nok 1376 - case-1376\nok 1377 - case-1377\nok 1378 - case-1378\nok 1379 - case-1379\nok 1380 - case-1380\nok 1381 - case-1381\nok 1382 - case-1382\nok 1383 - case-1383\nok 1384 - case-1384\nok 1385 - case-1385\nok 1386 - case-1386\nok 1387 - case-1387\nok 1388 - case-1388\nok 1389 - case-1389\nok 1390 - case-1390\nok 1391 - case-1391\nok 1392 - case-1392\nok 1393 - case-1393\nok 1394 - case-1394\nok 1395 - case-1395\nok 1396 - case-1396\nok 1397 - case-1397\nok 1398 - case-1398\nok 1399 - case-1399\nok 1400 - case-1400\nok 1401 - case-1401\nok 1402 - case-1402\nok 1403 - case-1403\nok 1404 - case-1404\nok 1405 - case-1405\nok 1406 - case-1406\nok 1407 - case-1407\nok 1408 - case-1408\nok 1409 - case-1409\nok 1410 - case-1410\nok 1411 - case-1411\nok 1412 - case-1412\nok 1413 - case-1413\nok 1414 - case-1414\nok 1415 - case-1415\nok 1416 - case-1416\nok 1417 - case-1417\nok 1418 - case-1418\nok 1419 - case-1419\nok 1420 - case-1420\nok 1421 - case-1421\nok 1422 - case-1422\nok 1423 - case-1423\nok 1424 - case-1424\nok 1425 - case-1425\nok 1426 - case-1426\nok 1427 - case-1427\nok 1428 - case-1428\nok 1429 - case-1429\nok 1430 - case-1430\nok 1431 - case-1431\nok 1432 - case-1432\nok 1433 - case-1433\nok 1434 - case-1434\nok 1435 - case-1435\nok 1436 - case-1436\nok 1437 - case-1437\nok 1438 - case-1438\nok 1439 - case-1439\nok 1440 - case-1440\nok 1441 - case-1441\nok 1442 - case-1442\nok 1443 - case-1443\nok 1444 - case-1444\nok 1445 - case-1445\nok 1446 - case-1446\nok 1447 - case-1447\nok 1448 - case-1448\nok 1449 - case-1449\nok 1450 - case-1450\nok 1451 - case-1451\nok 1452 - case-1452\nok 1453 - case-1453\nok 1454 - case-1454\nok 1455 - case-1455\nok 1456 - case-1456\nok 1457 - case-1457\nok 1458 - case-1458\nok 1459 - case-1459\nok 1460 - case-1460\nok 1461 - case-1461\nok 1462 - case-1462\nok 1463 - case-1463\nok 1464 - case-1464\nok 1465 - case-1465\nok 1466 - case-1466\nok 1467 - case-1467\nok 1468 - case-1468\nok 1469 - case-1469\nok 1470 - case-1470\nok 1471 - case-1471\nok 1472 - case-1472\nok 1473 - case-1473\nok 1474 - case-1474\nok 1475 - case-1475\nok 1476 - case-1476\nok 1477 - case-1477\nok 1478 - case-1478\nok 1479 - case-1479\nok 1480 - case-1480\nok 1481 - case-1481\nok 1482 - case-1482\nok 1483 - case-1483\nok 1484 - case-1484\nok 1485 - case-1485\nok 1486 - case-1486\nok 1487 - case-1487\nok 1488 - case-1488\nok 1489 - case-1489\nok 1490 - case-1490\nok 1491 - case-1491\nok 1492 - case-1492\nok 1493 - case-1493\nok 1494 - case-1494\nok 1495 - case-1495\nok 1496 - case-1496\nok 1497 - case-1497\nok 1498 - case-1498\nok 1499 - case-1499\nok 1500 - case-1500\n1..1500\n# tests 1500\n# pass 1500\n# fail 0\n# skipped 0\n# duration_ms 12.5\n"
+          }
+        ]
+      }
+    }
+  ]
+}

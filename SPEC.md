@@ -2,6 +2,9 @@
 
 Status: experimental prototype contract.
 
+Versioned Context Firewall profile:
+`opsle.decision-evidence.context-firewall-validation/v1`.
+
 ## Compatibility boundary
 
 The primitive accepts generic structured input and emits generic structured output. It must not require a Taslos Tasks database, worker, scheduler, package, runtime path, or private service.
@@ -29,6 +32,10 @@ The primitive accepts generic structured input and emits generic structured outp
 - Raw output is referenced, not embedded by default.
 - Protocol growth requires measured decision value.
 
+The Context Firewall packet-v1 validation profile additionally enforces the
+normative invariants in
+[`docs/context-firewall-packet-v1.md`](docs/context-firewall-packet-v1.md).
+
 ## Failure behavior
 
 Missing required authority or evidence fails closed. Unsupported optional data remains explicit and does not silently widen behavior. Implementations must document idempotency, crash consistency, and raw-evidence escalation.
@@ -36,3 +43,7 @@ Missing required authority or evidence fails closed. Unsupported optional data r
 ## Versioning
 
 Breaking semantic changes require a new protocol version. New optional fields require evidence that they affect a real decision.
+
+The Context Firewall profile supports only evidence packet v1, receipt version
+1, test-run input v1, reducer 0.2.0, and TAP-subset policy v1. Unsupported
+versions are rejected explicitly; they are not interpreted as compatible.
