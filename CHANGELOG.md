@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.0 - 2026-08-25
+
+- Added dependency-free `opsle.value-receipt.v1` validation and strict Context
+  Firewall receipt cross-checking at producer revision
+  `953c48f1cfd154d6b7ed10b51b87fe54e4df45f2`.
+- Added sibling validation receipts, deterministic sidecars, and named
+  `[Decision Evidence]` stderr indicators without changing canonical stdout.
+- Added exact/observed class, trust, aggregation, counterfactual, tamper,
+  inconsistency, source-verification, and invalid-state coverage.
+- This is conformance evidence, not EXP-001, causal benefit, or proof that a
+  failure was prevented.
+
 ## 0.2.0 - 2026-08-25
 
 - Added an independent Context Firewall packet-v1 validator and stable API.

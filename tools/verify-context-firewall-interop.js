@@ -8,8 +8,9 @@ import {
   canonicalJson,
   validateContextFirewallPacket,
 } from '../src/context-firewall-v1.js';
+import { validateContextFirewallValueReceipt } from '../src/context-firewall-value.js';
 
-const EXPECTED_CONTEXT_FIREWALL_SHA = 'dd34bd9f681314761f1ca87f339648bf611811f3';
+const EXPECTED_CONTEXT_FIREWALL_SHA = '953c48f1cfd154d6b7ed10b51b87fe54e4df45f2';
 
 function gitHead(path) {
   const result = spawnSync('git', ['-C', path, 'rev-parse', 'HEAD'], { encoding: 'utf8' });
@@ -32,18 +33,23 @@ async function main() {
     ['needs-raw-evidence', 'process/interrupted-truncated', 'NEEDS_RAW_EVIDENCE'],
   ].map(([id, fixtureName, expectedSufficiency]) => {
     const fixture = fixtures.corpus.find((item) => item.name === fixtureName);
-    const packet = reducer.reduceTestRun(fixture.input, fixture.options);
+    const { packet, valueReceipt } = reducer.reduceWithValueReceipt(fixture.input, {
+      ...(fixture.options ?? {}),
+      mechanismRevision: contextHead,
+    });
     const packetBytes = reducer.serializePacket(packet);
     const result = validateContextFirewallPacket(packet, {
       packetBytes,
       sourceInput: fixture.input,
     });
+    const valueResult = validateContextFirewallValueReceipt(valueReceipt, packet);
     return {
       classification: result.classification,
       id,
-      pass: result.valid && result.sufficiency === expectedSufficiency,
+      pass: result.valid && result.sufficiency === expectedSufficiency && valueResult.valid,
       producer_fixture: fixtureName,
       sufficiency: result.sufficiency,
+      value_receipt_valid: valueResult.valid,
     };
   });
   const tamperFixture = fixtures.corpus.find((item) => item.name === 'normal/small-all-pass');

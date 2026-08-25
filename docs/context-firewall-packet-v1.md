@@ -7,7 +7,7 @@ Profile version:
 
 Producer contract:
 `opsle.context-firewall.evidence-packet/v1` at Context Firewall revision
-`dd34bd9f681314761f1ca87f339648bf611811f3`.
+`953c48f1cfd154d6b7ed10b51b87fe54e4df45f2`.
 
 ## What a validated receipt establishes
 
@@ -65,7 +65,7 @@ loose compatibility:
 - receipt version is exactly 1;
 - source protocol is exactly test-run input v1;
 - reducer identity is exactly
-  `@opsle/context-firewall/test-output` version `0.2.0`;
+  `@opsle/context-firewall/test-output` version `0.3.0`;
 - policy revision is exactly `tap-subset-policy/v1`;
 - source, run, operation, and raw-reference identities are either nonempty
   strings or `null`, according to packet v1;
