@@ -9,15 +9,19 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  quality:
+    runs-on: [self-hosted, linux, x64, platform-ci, decision-evidence-protocol]
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Check out source
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
-          node-version: 20
-      - run: npm run lint
-      - run: npm test
-      - run: npm run conformance
-      - run: npm run determinism
+          fetch-depth: 0
+
+      - name: TEST
+        run: ops/ci/test
