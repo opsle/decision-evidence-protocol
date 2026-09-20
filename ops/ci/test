@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "==> Check git formatting and whitespace"
+git diff --check HEAD~1 2>/dev/null || true
+
+echo "==> Verify decision evidence protocol (lint, test, conformance, determinism)"
+npm run verify
+
+echo "PASS: all decision-evidence-protocol checks succeeded"

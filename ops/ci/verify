@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Fail-closed post-deployment verification for decision-evidence-protocol
+# Usage: ops/ci/verify <SHA>
+
+sha="${1:-}"
+if [[ -z "$sha" ]]; then
+  echo "usage: $0 <SHA>" >&2
+  exit 2
+fi
+
+root="${OPSLE_COMPONENT_ROOT:-/opt/opsle-components/decision-evidence-protocol}"
+current_symlink="$root/current"
+receipt_file="$root/receipts/deploy-$sha.json"
+
+if [[ ! -f "$receipt_file" ]]; then
+  echo "verify: missing deployment receipt $receipt_file" >&2
+  exit 1
+fi
+
+if [[ ! -d "$current_symlink" ]]; then
+  echo "verify: missing current symlink $current_symlink" >&2
+  exit 1
+fi
+
+echo "==> Verifying deployed component via conformance"
+node "$current_symlink/bin/decision-evidence.js" conformance
+
+echo "verify: component decision-evidence-protocol at $sha passed verification"
